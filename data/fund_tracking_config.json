@@ -1,0 +1,367 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-06-03",
+  "description": "LOF 基金跟踪标的映射配置。按基金6位代码索引，用于实时估算净值计算。",
+  "funds": {
+    "162411": {
+      "fund_name": "华宝油气",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "XOP",
+        "name": "SPDR S&P Oil & Gas Exploration & Production ETF",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "160416": {
+      "fund_name": "华安石油",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "XOP",
+        "name": "SPDR S&P Oil & Gas Exploration & Production ETF",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "162719": {
+      "fund_name": "广发石油",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "XOP",
+        "name": "SPDR S&P Oil & Gas Exploration & Production ETF",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "161128": {
+      "fund_name": "纳指LOF",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "QQQ",
+        "name": "Invesco QQQ Trust (NASDAQ-100)",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "161130": {
+      "fund_name": "标普500LOF",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "SPY",
+        "name": "SPDR S&P 500 ETF Trust",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "161125": {
+      "fund_name": "标普生物",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "XBI",
+        "name": "SPDR S&P Biotech ETF",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "164906": {
+      "fund_name": "中国互联",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "KWEB",
+        "name": "KraneShares CSI China Internet ETF",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "164701": {
+      "fund_name": "黄金LOF",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "GLD",
+        "name": "SPDR Gold Trust",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.98,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "160719": {
+      "fund_name": "嘉实黄金",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "GLD",
+        "name": "SPDR Gold Trust",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.98,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "501018": {
+      "fund_name": "南方原油",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "USO",
+        "name": "United States Oil Fund",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "160723": {
+      "fund_name": "嘉实原油",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "USO",
+        "name": "United States Oil Fund",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "161226": {
+      "fund_name": "国投白银",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "us_etf",
+        "symbol": "SLV",
+        "name": "iShares Silver Trust",
+        "source_func": "stock_us_spot_em",
+        "source_filter": "code"
+      },
+      "position_ratio": 0.98,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "501300": {
+      "fund_name": "恒生LOF",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "global_index",
+        "symbol": "HSI",
+        "name": "恒生指数",
+        "source_func": "index_global_spot_em",
+        "source_filter": "name"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "HKDCNY",
+      "nav_lag_days": 0
+    },
+    "160140": {
+      "fund_name": "招商全球资源",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "global_index",
+        "symbol": "SPX",
+        "name": "标普500",
+        "source_func": "index_global_spot_em",
+        "source_filter": "name"
+      },
+      "position_ratio": 0.90,
+      "currency_pair": "USDCNH",
+      "nav_lag_days": 1
+    },
+    "163208": {
+      "fund_name": "煤炭LOF",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "399998",
+        "name": "中证煤炭",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "161725": {
+      "fund_name": "白酒基金",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "399997",
+        "name": "中证白酒",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "161726": {
+      "fund_name": "生物医药LOF",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "930743",
+        "name": "中证生科",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "161628": {
+      "fund_name": "融通互联网",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "399363",
+        "name": "计算机指",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "160135": {
+      "fund_name": "高铁基金",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "399807",
+        "name": "高铁产业",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "163113": {
+      "fund_name": "申万证券",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "399707",
+        "name": "证券龙头",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "161027": {
+      "fund_name": "证券公司LOF",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "399975",
+        "name": "证券公司",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "161028": {
+      "fund_name": "新能源车LOF",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "399976",
+        "name": "新能源车",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "167301": {
+      "fund_name": "保险主题LOF",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "399809",
+        "name": "保险主题",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "160633": {
+      "fund_name": "券商LOF",
+      "fund_type": "DOMESTIC",
+      "tracking_target": {
+        "type": "domestic_index",
+        "symbol": "399975",
+        "name": "证券公司",
+        "source_func": "stock_zh_index_spot_em",
+        "source_filter": "code",
+        "source_func_arg": "指数成份"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": null,
+      "nav_lag_days": 0
+    },
+    "501305": {
+      "fund_name": "港股通LOF",
+      "fund_type": "QDII",
+      "tracking_target": {
+        "type": "global_index",
+        "symbol": "HSI",
+        "name": "恒生指数",
+        "source_func": "index_global_spot_em",
+        "source_filter": "name"
+      },
+      "position_ratio": 0.95,
+      "currency_pair": "HKDCNY",
+      "nav_lag_days": 0
+    }
+  }
+}

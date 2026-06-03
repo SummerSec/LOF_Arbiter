@@ -48,11 +48,33 @@
 | 成交额 ≥ 100万 | 最低流动性门槛 |
 | 排除暂停申购 | 无法进行套利操作 |
 
-### 3. 净值取值规则
+### 3. 溢价率计算（实时估算净值）
 
-从数据库获取净值时：
+#### 公式
+
+```
+// 国内 LOF
+实时估算净值 = 昨日净值 × (1 + 跟踪标的涨跌幅 × 仓位比例)
+
+// QDII LOF
+实时估算净值 = 昨日净值 × (1 + 跟踪标的涨跌幅 × 仓位比例) × (1 + USD/CNY 涨跌幅)
+
+溢价率 = (场内价格 - 实时估算净值) / 实时估算净值 × 100%
+```
+
+#### 三级估算策略
+
+| 级别 | 条件 | 公式 | 标记 |
+|---|---|---|---|
+| `TRACKING` | 有基金跟踪配置 + 基准数据可用 | 完整实时估算净值公式 | 展示估算净值 |
+| `LEGACY` | 无配置或无基准数据 | 原 (price-nav)/nav | 标注不可用 |
+| `NONE` | 无净值数据 | premium=NULL | 不参与排行 |
+
+#### 净值取值规则
+
 - 优先使用 **最新净值日期** 的净值
 - 如果净值为空，使用**上一交易日**净值
+- 配置了跟踪标的的基金，优先使用**实时估算净值**
 
 ---
 
@@ -73,6 +95,15 @@ lof_arbiter/
 | 新浪财经 `fund_etf_category_sina` | LOF 基金实时行情：代码、名称、现价、涨跌幅、成交额 |
 | 东方财富 `fund_open_fund_daily_em` | 基金净值：第3列（最新）、第5列（上一交易日） |
 | 东方财富 `fund_purchase_em` | 申购状态、手续费、购买起点 |
+| akshare `stock_zh_index_spot_em` | A 股指数实时涨跌幅（跟踪标的） |
+| akshare `stock_us_spot_em` | 美股 ETF 实时涨跌幅（XOP/Q等 QDII 跟踪标的） |
+| akshare `index_global_spot_em` | 全球指数实时涨跌幅（恒生等） |
+| akshare `forex_spot_em` | 实时汇率（QDII 需要） |
+
+### 基金跟踪配置
+
+`data/fund_tracking_config.json` 维护 LOF 基金的跟踪标的映射关系，
+包含：基金代码、基金类型（QDII/DOMESTIC）、跟踪标的代码与名称、仓位比例、汇率对等。
 
 ### 数据库表结构
 
@@ -86,14 +117,19 @@ lof_daily (
     nav_date,            -- 净值日期
     prev_nav,            -- 上一交易日净值
     prev_nav_date,       -- 上一交易日净值日期
-    premium_rate,        -- 溢价率
+    premium_rate,        -- 溢价率（基于实时估算净值）
     turnover,            -- 成交额
     change_pct,          -- 涨跌幅
     purchase_status,     -- 申购状态
     purchase_limit,      -- 购买起点
     daily_limit,         -- 日累计限额
     fee_rate,            -- 手续费
-    trade_date           -- 交易日期
+    trade_date,          -- 交易日期
+    estimated_nav,       -- 实时估算净值
+    benchmark_change_pct,-- 跟踪标的涨跌幅(%)
+    fx_change_pct,       -- 汇率涨跌幅(%)
+    premium_rate_legacy, -- 老公式溢价率（对比用）
+    estimation_method    -- 估算方式: TRACKING/LEGACY/NONE
 )
 ```
 
@@ -171,9 +207,13 @@ lof-arbiter/
 │   ├── __init__.py
 │   ├── db.py             # 数据库管理
 │   ├── etl.py            # 数据抓取（akshare）
-│   └── query.py          # 数据查询
+│   ├── query.py          # 数据查询
+│   ├── config.py         # 基金跟踪配置加载
+│   ├── tracker.py        # 跟踪标的涨跌幅抓取
+│   └── estimator.py      # 实时估算净值引擎
 ├── data/
-│   └── lof_arbiter.db   # SQLite 数据库
+│   ├── lof_arbiter.db           # SQLite 数据库
+│   └── fund_tracking_config.json # 基金跟踪标配置
 └── README.md
 ```
 

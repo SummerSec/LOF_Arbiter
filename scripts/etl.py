@@ -9,6 +9,9 @@ from datetime import date
 from typing import Dict, List, Optional
 
 from scripts.db import save_lof_data, init_database
+from scripts.config import load_tracking_config, get_fund_config, get_currency_pairs
+from scripts.tracker import fetch_benchmark_data, fetch_forex_data
+from scripts.estimator import estimate_all, get_estimation_summary
 
 
 def make_full_code(code: str) -> str:
@@ -123,9 +126,15 @@ def run_etl() -> Dict:
     运行 ETL：抓取并融合 LOF 数据
     """
     trade_date = date.today().strftime('%Y-%m-%d')
-    
+
     print(f"开始 LOF ETL，日期: {trade_date}")
-    
+
+    # 0. 加载跟踪配置
+    print("加载基金跟踪配置...")
+    tracking_config = load_tracking_config()
+    config_count = len(tracking_config)
+    print(f"  已加载 {config_count} 只基金的跟踪配置")
+
     # 1. 获取实时行情
     print("获取 LOF 实时行情...")
     df_price = fetch_lof_realtime()
@@ -149,7 +158,22 @@ def run_etl() -> Dict:
     else:
         print(f"  申购状态: {len(df_purchase)} 条")
     
-    # 4. 数据融合
+    # 4. 获取跟踪标的涨跌幅
+    if tracking_config:
+        print("获取跟踪标的实时涨跌幅...")
+        benchmark_data = fetch_benchmark_data(tracking_config)
+        bm_available = sum(1 for v in benchmark_data.values() if v is not None)
+        print(f"  基准数据: {bm_available}/{len(benchmark_data)} 可用")
+    else:
+        benchmark_data = {}
+
+    # 5. 获取汇率变动（QDII 需要）
+    fx_data = fetch_forex_data(tracking_config) if tracking_config else {}
+    if fx_data:
+        fx_available = sum(1 for v in fx_data.values() if v is not None)
+        print(f"  汇率数据: {fx_available}/{len(fx_data)} 可用")
+
+    # 6. 数据融合
     print("融合数据...")
     
     # 选择需要的列（处理可能不存在的列）
@@ -182,23 +206,19 @@ def run_etl() -> Dict:
         df_result['daily_limit'] = None
         df_result['fee_rate'] = None
     
-    # 5. 计算溢价率（优先使用 nav，为空则用 prev_nav）
-    def calc_premium(row):
-        price = row.get('price')
-        nav = row.get('nav') if pd.notna(row.get('nav')) else row.get('prev_nav')
-        if price and nav and nav > 0:
-            return (price - nav) / nav * 100
-        return None
-    
-    df_result['premium_rate'] = df_result.apply(calc_premium, axis=1)
-    
-    # 6. 转换数据为字典列表
+    # 7. 实时估算净值与溢价率
+    print("计算实时估算净值...")
+    df_result = estimate_all(df_result, tracking_config, benchmark_data, fx_data)
+    summary = get_estimation_summary(df_result)
+    print(f"  估算方式分布: {summary}")
+
+    # 8. 转换数据为字典列表
     data = []
     for _, row in df_result.iterrows():
         # 确定净值和净值日期（优先 nav）
         nav = row.get('nav') if pd.notna(row.get('nav')) else row.get('prev_nav')
         nav_date = row.get('nav_date') if pd.notna(row.get('nav_date')) else row.get('prev_nav_date')
-        
+
         item = {
             'fund_code': str(row.get('fund_code', '')).strip(),
             'fund_code_full': row.get('fund_code_full'),
@@ -215,10 +235,15 @@ def run_etl() -> Dict:
             'purchase_limit': row.get('purchase_limit'),
             'daily_limit': row.get('daily_limit'),
             'fee_rate': row.get('fee_rate'),
+            'estimated_nav': row.get('estimated_nav'),
+            'benchmark_change_pct': row.get('benchmark_change_pct'),
+            'fx_change_pct': row.get('fx_change_pct'),
+            'premium_rate_legacy': row.get('premium_rate_legacy'),
+            'estimation_method': row.get('estimation_method'),
         }
         data.append(item)
     
-    # 7. 保存数据库
+    # 9. 保存数据库
     init_database()
     count = save_lof_data(data, trade_date)
     
