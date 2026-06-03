@@ -2,8 +2,10 @@ name: Daily LOF ETL
 
 on:
   schedule:
-    # 北京时间 15:30 (UTC+8) = UTC 07:30，A股收盘后半小时
-    - cron: "30 7 * * 1-5"
+    # 北京时间 13:00 = UTC 05:00
+    - cron: "0 5 * * 1-5"
+    # 北京时间 14:00 = UTC 06:00
+    - cron: "0 6 * * 1-5"
   workflow_dispatch:
     inputs:
       full_sync:
@@ -54,21 +56,35 @@ jobs:
           cd ${{ github.workspace }}
           python -m scripts.jisilu
 
+      - name: Send email report
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
+        run: |
+          cd ${{ github.workspace }}
+          python -c "
+          from scripts.notify import generate_report_text, send_report
+          report = generate_report_text()
+          print(report)
+          send_report(report, subject_prefix='$(date +'%H:%M' -u) UTC')
+          "
+
       - name: Commit and push data
         run: |
           cd ${{ github.workspace }}
           git config user.name "lof-arbiter-bot"
           git config user.email "bot@lof-arbiter.dev"
 
-          # Stage database and any changed data files
           git add data/lof_arbiter.db data/*.csv -f 2>/dev/null || true
           git add data/ -f 2>/dev/null || true
 
-          # Check if there are changes
           if git diff --cached --quiet; then
             echo "No data changes, skipping commit"
             exit 0
           fi
 
-          git commit -m "data: daily ETL $(date +'%Y-%m-%d')"
+          git commit -m "data: daily ETL $(date +'%Y-%m-%d %H:%M')"
           git push
