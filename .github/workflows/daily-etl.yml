@@ -1,0 +1,74 @@
+name: Daily LOF ETL
+
+on:
+  schedule:
+    # 北京时间 15:30 (UTC+8) = UTC 07:30，A股收盘后半小时
+    - cron: "30 7 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      full_sync:
+        description: "Full sync (includes Jisilu)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  etl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run ETL (akshare)
+        id: etl
+        run: |
+          cd ${{ github.workspace }}
+          python -m scripts.etl
+
+      - name: Sync Jisilu
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.full_sync == 'true' }}
+        run: |
+          cd ${{ github.workspace }}
+          python -m scripts.jisilu
+
+      - name: Commit and push data
+        run: |
+          cd ${{ github.workspace }}
+          git config user.name "lof-arbiter-bot"
+          git config user.email "bot@lof-arbiter.dev"
+
+          # Stage database and any changed data files
+          git add data/lof_arbiter.db data/*.csv -f 2>/dev/null || true
+          git add data/ -f 2>/dev/null || true
+
+          # Check if there are changes
+          if git diff --cached --quiet; then
+            echo "No data changes, skipping commit"
+            exit 0
+          fi
+
+          git commit -m "data: daily ETL $(date +'%Y-%m-%d')"
+          git push
