@@ -22,7 +22,7 @@ THS_FUND_BASE = "https://fund.10jqka.com.cn"
 LYLOF_ARBITRAGE_URL = "https://www.lylof.com/arbitrage"
 TRADESMART_LOF_URL = "https://www.lowrisktradesmart.org/zh/tools/lof-premium"
 XUEQIU_FUND_BASE = "https://xueqiu.com/S"
-REPORT_PAGE_URL = "https://summersec.github.io/LOF_Arbiter/"
+REPORT_PAGE_URL = "https://lof.sumsec.me/"
 DEFAULT_PARAMS = {"___jsl": "LST___t", "rp": "50", "page": "1"}
 REQUEST_DELAY = 0.5  # seconds between requests to avoid rate limiting
 
