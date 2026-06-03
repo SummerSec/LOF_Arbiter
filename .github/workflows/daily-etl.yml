@@ -49,6 +49,15 @@ jobs:
           cd ${{ github.workspace }}
           python -m scripts.jisilu
 
+      - name: Sync with main before report
+        run: |
+          cd ${{ github.workspace }}
+          git config user.name "lof-arbiter-bot"
+          git config user.email "bot@lof-arbiter.dev"
+          git fetch origin main
+          # 仅 data/ 有改动时 rebase，避免与远端 docs/index.html 冲突
+          git pull --rebase origin main
+
       - name: Generate report
         id: report
         run: |
@@ -119,5 +128,4 @@ jobs:
           fi
 
           git commit -m "data: daily ETL $(date +'%Y-%m-%d %H:%M')"
-          git pull --rebase origin main
-          git push
+          git push origin HEAD:main
