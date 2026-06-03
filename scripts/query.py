@@ -129,6 +129,24 @@ def get_limited_premium_top(
     return df.head(n)
 
 
+def get_suspended_premium_top(
+    n: int = 10,
+    min_premium: float = 0.5,
+    min_turnover: float = 1000000,
+    db_path: str = DEFAULT_DB_PATH,
+) -> pd.DataFrame:
+    """暂停申购高溢价 TOP N（仅供持仓者场内卖出参考，不可申购套利）"""
+    df = get_lof_data(db_path=db_path)
+
+    df = df[df["status_class"] == "suspended"]
+    df = df[df["premium_rate"] > min_premium]
+    df = df[df["turnover"] >= min_turnover]
+
+    df = df.sort_values("premium_rate", ascending=False)
+
+    return df.head(n)
+
+
 def get_fund_by_code(
     code: str,
     db_path: str = DEFAULT_DB_PATH
@@ -390,6 +408,13 @@ def format_arbitrage_report(db_path: str = DEFAULT_DB_PATH) -> str:
     if not df_premium.empty:
         lines.append("🔥 【高溢价 TOP5】（卖出赎回套利）")
         for _, row in df_premium.iterrows():
+            lines.append(format_fund_row(row.to_dict()))
+            lines.append("")
+
+    df_suspended = get_suspended_premium_top(n=5, min_premium=0.5)
+    if not df_suspended.empty:
+        lines.append("⏸️ 【暂停申购·高溢价 TOP5】（仅供持仓参考，不可申购套利）")
+        for _, row in df_suspended.iterrows():
             lines.append(format_fund_row(row.to_dict()))
             lines.append("")
 

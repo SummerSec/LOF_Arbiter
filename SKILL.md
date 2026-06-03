@@ -6,6 +6,17 @@
 > 
 > **特性**: 独立运行，不依赖 DataHub
 
+### 参考文档
+
+深度原理与避坑指南见 `reference/` 目录：
+
+| 文档 | 用途 |
+|------|------|
+| [reference/qdii-premium-logic.md](reference/qdii-premium-logic.md) | 跨境 QDII 溢价底层逻辑、港美差异、T-2 锚定与避坑 |
+| [reference/realtime-premium-calculation.md](reference/realtime-premium-calculation.md) | 实时估算净值与溢价率手算（161226 / 162411 实操，集思录不显示时自用） |
+
+回答用户 **QDII 溢价、时差、手算溢价、集思录不显示** 等问题时，**优先参阅上述参考文档**。
+
 ---
 
 ## 功能说明
@@ -280,6 +291,9 @@ lof_daily (
 ```
 lof-arbiter/
 ├── SKILL.md              # Skill 定义
+├── reference/            # 深度参考文档
+│   ├── qdii-premium-logic.md           # QDII 溢价逻辑与避坑
+│   └── realtime-premium-calculation.md # 实时估算净值与溢价率手算
 ├── scripts/
 │   ├── __init__.py
 │   ├── db.py             # 数据库管理

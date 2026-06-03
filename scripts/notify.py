@@ -216,6 +216,7 @@ def generate_report_markdown(
         get_premium_top,
         get_discount_top,
         get_limited_premium_top,
+        get_suspended_premium_top,
         DEFAULT_DB_PATH,
     )
 
@@ -233,6 +234,7 @@ def generate_report_markdown(
 
     df_limited = get_limited_premium_top(n=5, min_premium=0.3)
     df_premium = get_premium_top(n=5, min_premium=0.5)
+    df_suspended = get_suspended_premium_top(n=5, min_premium=0.5)
     df_discount = get_discount_top(n=5, min_discount=0.5)
 
     sections = [
@@ -263,20 +265,28 @@ def generate_report_markdown(
         _fund_table(df_premium),
         "---",
         "",
-        "## 四、高折价 TOP5（买入套利）",
+        "## 四、暂停申购·高溢价 TOP5",
+        "",
+        "> **策略提示**：场外申购已关闭，**无法新开申购套利**；若已持仓，可关注场内高溢价卖出机会",
+        "",
+        _fund_table(df_suspended, show_status=True),
+        "---",
+        "",
+        "## 五、高折价 TOP5（买入套利）",
         "",
         "> **策略提示**：场内买入 + 场外申购，赚取折价差",
         "",
         _fund_table(df_discount),
         "---",
         "",
-        "## 五、风险提示",
+        "## 六、风险提示",
         "",
         "| 类型 | 说明 |",
         "| --- | --- |",
         "| 交割周期 | LOF 套利 T+2 交割，资金占用约 2 个交易日 |",
         "| 赎回费用 | 持有 ≥7 天通常 0.5%，不足 7 天约 1.5% |",
         "| 流动性 | 高溢价不等于能成交，需关注成交额 |",
+        "| 暂停申购 | 第四节品种不可申购套利，仅供已有份额的场内卖出参考 |",
         "| 美股 QDII | **仅「当日溢价」可信**，次日预估不可作为交易依据 |",
         "| 港股 QDII | 当日/次日溢价均可较精准计算 |",
         "",

@@ -93,12 +93,15 @@ jobs:
             }
 
             // 创建新日报 Issue（中文标题 + Markdown 正文）
+            // assign + @mention 仓库 owner，确保 GitHub 邮件通知可达（bot 单独开 issue 默认不通知）
+            const owner = context.repo.owner;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `【LOF套利日报】${dateStr} ${timeStr}`,
-              body: report,
-              labels: ['daily-report']
+              body: report + `\n\n---\n\n/cc @${owner}`,
+              labels: ['daily-report'],
+              assignees: [owner],
             });
 
       - name: Commit and push data
