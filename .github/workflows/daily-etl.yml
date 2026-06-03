@@ -11,7 +11,7 @@ on:
       full_sync:
         description: "Full sync (includes Jisilu)"
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: write
