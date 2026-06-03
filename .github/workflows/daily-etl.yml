@@ -116,4 +116,5 @@ jobs:
           fi
 
           git commit -m "data: daily ETL $(date +'%Y-%m-%d %H:%M')"
+          git pull --rebase origin main
           git push
