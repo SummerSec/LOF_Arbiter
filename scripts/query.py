@@ -234,16 +234,24 @@ def export_lof_csv(
     export_df = pd.DataFrame()
     export_df['基金代码'] = df['fund_code_full']
     export_df['名称'] = df['fund_name']
-    export_df['溢价率'] = df['premium_rate'].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else '')
+    export_df['溢价率(当日)'] = df['premium_rate'].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else '')
+    export_df['溢价率(次日预估)'] = df['premium_tomorrow_est'].apply(
+        lambda x: f"{x:.2f}%" if pd.notna(x) else ''
+    )
+    export_df['溢价置信度'] = df['premium_confidence'].fillna('')
     export_df['当日交易额(万元)'] = df['turnover_wan'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '')
     export_df['现价'] = df['price'].apply(lambda x: f"{x:.4f}" if pd.notna(x) else '')
     export_df['涨跌幅'] = df['change_pct'].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else '')
-    export_df['净值'] = df['nav'].apply(lambda x: f"{x:.4f}" if pd.notna(x) else '')
-    export_df['估算净值'] = df['estimated_nav'].apply(lambda x: f"{x:.4f}" if pd.notna(x) else '')
-    export_df['跟踪标的涨跌'] = df['benchmark_change_pct'].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else '')
+    export_df['官方净值'] = df['nav'].apply(lambda x: f"{x:.4f}" if pd.notna(x) else '')
+    export_df['锚定净值N(T-2)'] = df['anchor_nav'].apply(lambda x: f"{x:.4f}" if pd.notna(x) else '')
+    export_df['T日基准预估净值'] = df['estimated_nav'].apply(lambda x: f"{x:.4f}" if pd.notna(x) else '')
+    export_df['T+1预估净值'] = df['estimated_nav_tomorrow'].apply(lambda x: f"{x:.4f}" if pd.notna(x) else '')
+    export_df['R(T-1)'] = df['benchmark_change_pct'].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else '')
+    export_df['R(T)'] = df['benchmark_change_t0'].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else '')
     export_df['汇率变动'] = df['fx_change_pct'].apply(lambda x: f"{x:.2f}%" if pd.notna(x) else '')
     export_df['估算方式'] = df['estimation_method'].fillna('')
-    export_df['时间'] = df['nav_date'].fillna(df['prev_nav_date'])
+    export_df['净值日期'] = df['nav_date'].fillna(df['prev_nav_date'])
+    export_df['锚定净值日期'] = df['anchor_nav_date'].fillna('')
     export_df['申购状态'] = df['purchase_status'].fillna('')
     export_df['购买起点'] = df['purchase_limit'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '')
     export_df['日累计限定金额'] = df['daily_limit'].apply(lambda x: f"{x:.2f}" if pd.notna(x) else '')
@@ -254,28 +262,51 @@ def export_lof_csv(
     return filepath
 
 
+def _format_premium(premium: float) -> str:
+    if premium > 1:
+        return f"🔥 +{premium:.2f}%"
+    if premium < -1:
+        return f"💎 {premium:.2f}%"
+    return f"{premium:.2f}%"
+
+
+def _confidence_label(method: str, confidence: str) -> str:
+    labels = {
+        "TRACKING_HK": "港股同步·高置信",
+        "TRACKING_US": "美股QDII·当日可信",
+        "TRACKING_DOM": "国内LOF",
+        "TRACKING": "跟踪估算",
+        "LEGACY": "官方净值（未跟踪）",
+    }
+    base = labels.get(method, method or "")
+    if confidence == "ESTIMATE":
+        return f"{base}·仅供参考"
+    return base
+
+
 def format_fund_row(row: Dict, include_status: bool = True) -> str:
     """格式化基金信息为文本"""
     name = row.get('fund_name', '未知')
     code = row.get('fund_code_full', '')
-    premium = row.get('premium_rate') or 0
+    premium = row.get('premium_rate')
+    premium_tomorrow = row.get('premium_tomorrow_est')
     price = row.get('price') or 0
     nav = row.get('nav') or row.get('prev_nav') or 0
+    anchor_nav = row.get('anchor_nav')
+    anchor_date = row.get('anchor_nav_date') or row.get('nav_date') or row.get('prev_nav_date') or ''
     nav_date = row.get('nav_date') or row.get('prev_nav_date') or ''
     turnover = row.get('turnover') or 0
     turnover_wan = turnover / 10000 if turnover else 0
     status = row.get('purchase_status', '未知')
     est_nav = row.get('estimated_nav')
+    est_nav_tomorrow = row.get('estimated_nav_tomorrow')
     bm_change = row.get('benchmark_change_pct')
+    bm_change_t0 = row.get('benchmark_change_t0')
     fx_change = row.get('fx_change_pct')
     method = row.get('estimation_method', '')
+    confidence = row.get('premium_confidence', '')
 
-    if premium > 1:
-        premium_str = f"🔥 +{premium:.2f}%"
-    elif premium < -1:
-        premium_str = f"💎 {premium:.2f}%"
-    else:
-        premium_str = f"{premium:.2f}%"
+    premium_str = _format_premium(premium) if premium is not None else "N/A"
 
     if turnover_wan >= 10000:
         turnover_str = f"{turnover_wan/10000:.2f}亿"
@@ -284,7 +315,10 @@ def format_fund_row(row: Dict, include_status: bool = True) -> str:
     else:
         turnover_str = f"{turnover_wan*10000:.0f}元"
 
-    nav_date_str = f"（净值日期: {nav_date}）" if nav_date else ''
+    nav_date_str = f"（官方净值日期: {nav_date}）" if nav_date else ''
+    anchor_str = ""
+    if anchor_nav is not None and method.startswith("TRACKING"):
+        anchor_str = f" | 锚定净值 N(T-2): {anchor_nav:.4f}（{anchor_date}）"
 
     status_tag = ''
     if include_status:
@@ -293,22 +327,37 @@ def format_fund_row(row: Dict, include_status: bool = True) -> str:
         elif '暂停' in str(status):
             status_tag = ' [暂停]'
 
+    conf_label = _confidence_label(method, confidence)
     lines = [
         f"{name}（{code}）{status_tag}",
-        f"  溢价率: {premium_str} | 现价: {price:.3f} | 净值: {nav:.4f} {nav_date_str}",
+        f"  当日溢价: {premium_str} | 现价: {price:.3f} | 官方净值: {nav:.4f} {nav_date_str}{anchor_str}",
+        f"  [{conf_label}]",
     ]
 
-    if method == 'TRACKING' and est_nav is not None:
-        est_line = f"  估算净值: {est_nav:.4f}"
+    if method.startswith("TRACKING") and est_nav is not None:
+        est_line = f"  T日基准预估净值: {est_nav:.4f}"
         if bm_change is not None:
             bm_tag = f"+{bm_change:.2f}%" if bm_change >= 0 else f"{bm_change:.2f}%"
-            est_line += f" | 跟踪标的涨跌: {bm_tag}"
+            est_line += f" | R(T-1): {bm_tag}"
         if fx_change is not None:
             fx_tag = f"+{fx_change:.2f}%" if fx_change >= 0 else f"{fx_change:.2f}%"
-            est_line += f" | 汇率变动: {fx_tag}"
+            est_line += f" | 汇率: {fx_tag}"
         lines.append(est_line)
+
+        if method == "TRACKING_HK" and premium_tomorrow is not None:
+            lines.append(
+                f"  次日预估溢价: {_format_premium(premium_tomorrow)}"
+                f" | T+1预估净值: {est_nav_tomorrow:.4f}"
+                + (f" | R(T): {bm_change_t0:+.2f}%" if bm_change_t0 is not None else "")
+            )
+        elif method == "TRACKING_US":
+            lines.append("  ⚠ 美股QDII：次日溢价无法精准预估，请勿依据 APP 预判数据交易")
+        elif premium_tomorrow is not None and method == "TRACKING_DOM":
+            lines.append(
+                f"  次日预估溢价: {_format_premium(premium_tomorrow)} | T+1预估净值: {est_nav_tomorrow:.4f}"
+            )
     elif method == 'LEGACY':
-        lines.append("  [Legacy] est.NAV unavailable, using last NAV")
+        lines.append("  [Legacy] 无跟踪配置，溢价基于最新官方净值")
 
     lines.append(f"  成交额: {turnover_str} | 状态: {status}")
 
@@ -323,10 +372,8 @@ def format_arbitrage_report(db_path: str = DEFAULT_DB_PATH) -> str:
     df_all = get_lof_data(db_path=db_path)
     if 'estimation_method' in df_all.columns:
         summary = df_all['estimation_method'].value_counts()
-        tracking_n = summary.get('TRACKING', 0)
-        legacy_n = summary.get('LEGACY', 0)
-        total = len(df_all)
-        lines.append(f"Estimation: {tracking_n} tracking / {legacy_n} legacy (total {total})")
+        parts = [f"{k}:{v}" for k, v in summary.items()]
+        lines.append(f"Estimation: {', '.join(parts)} (total {len(df_all)})")
         lines.append("")
 
     df_limited = get_limited_premium_top(n=5, min_premium=0.3)
@@ -358,7 +405,9 @@ def format_arbitrage_report(db_path: str = DEFAULT_DB_PATH) -> str:
     lines.append("- 赎回费通常 0.5%，持有 <7天 为 1.5%")
     lines.append("- 高溢价需关注流动性，避免无法成交")
     lines.append("- 限购产品溢价更稳定，优先关注")
-    lines.append("- 溢价率基于实时估算净值计算，非实际净值")
+    lines.append("- 溢价率基于 T-2 锚定 + R(T-1) 估算，非实际净值")
+    lines.append("- 美股 QDII 仅「当日溢价」可信，次日预估不可作为交易依据")
+    lines.append("- 港股 QDII 当日/次日溢价均可较精准计算")
 
     return "\n".join(lines)
 

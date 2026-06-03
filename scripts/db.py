@@ -51,6 +51,12 @@ def init_database(db_path: str = DB_PATH) -> None:
                 fx_change_pct REAL,
                 premium_rate_legacy REAL,
                 estimation_method TEXT,
+                anchor_nav REAL,
+                anchor_nav_date TEXT,
+                estimated_nav_tomorrow REAL,
+                benchmark_change_t0 REAL,
+                premium_tomorrow_est REAL,
+                premium_confidence TEXT,
                 UNIQUE(fund_code, trade_date)
             )
         """)
@@ -94,6 +100,12 @@ def _migrate_columns(cursor):
         ("fx_change_pct", "REAL"),
         ("premium_rate_legacy", "REAL"),
         ("estimation_method", "TEXT"),
+        ("anchor_nav", "REAL"),
+        ("anchor_nav_date", "TEXT"),
+        ("estimated_nav_tomorrow", "REAL"),
+        ("benchmark_change_t0", "REAL"),
+        ("premium_tomorrow_est", "REAL"),
+        ("premium_confidence", "TEXT"),
     ]
     for col_name, col_type in new_columns:
         try:
@@ -117,8 +129,10 @@ def save_lof_data(data: list, trade_date: str, db_path: str = DB_PATH) -> int:
                  prev_nav, prev_nav_date, premium_rate, turnover, change_pct,
                  purchase_status, purchase_limit, daily_limit, fee_rate, trade_date,
                  estimated_nav, benchmark_change_pct, fx_change_pct,
-                 premium_rate_legacy, estimation_method)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 premium_rate_legacy, estimation_method,
+                 anchor_nav, anchor_nav_date, estimated_nav_tomorrow,
+                 benchmark_change_t0, premium_tomorrow_est, premium_confidence)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 item.get('fund_code'),
                 item.get('fund_code_full'),
@@ -141,6 +155,12 @@ def save_lof_data(data: list, trade_date: str, db_path: str = DB_PATH) -> int:
                 item.get('fx_change_pct'),
                 item.get('premium_rate_legacy'),
                 item.get('estimation_method'),
+                item.get('anchor_nav'),
+                item.get('anchor_nav_date'),
+                item.get('estimated_nav_tomorrow'),
+                item.get('benchmark_change_t0'),
+                item.get('premium_tomorrow_est'),
+                item.get('premium_confidence'),
             ))
             count += 1
         conn.commit()

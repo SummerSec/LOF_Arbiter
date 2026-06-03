@@ -115,3 +115,34 @@ def count_by_type(configs: Dict[str, FundTrackingConfig]) -> Dict[str, int]:
     for cfg in configs.values():
         counts[cfg.fund_type] = counts.get(cfg.fund_type, 0) + 1
     return counts
+
+
+def get_qdii_sync_class(cfg: FundTrackingConfig) -> str:
+    """
+    判断 QDII 溢价的时空同步类型，决定估算精度分级。
+
+    Returns
+    -------
+    HK_SYNC   - 港股同步交易，当日/次日溢价均可较精准
+    US_LAGGED - 美股时差错位，仅当日溢价可信
+    DOMESTIC  - 国内 LOF
+    MIXED     - 混合/商品等，降级为估算
+    """
+    if cfg.fund_type == "DOMESTIC":
+        return "DOMESTIC"
+
+    target_type = cfg.tracking_target.type
+    if target_type == "us_etf":
+        return "US_LAGGED"
+
+    if target_type == "global_index":
+        name = cfg.tracking_target.name or ""
+        symbol = (cfg.tracking_target.symbol or "").upper()
+        if cfg.currency_pair == "HKDCNY" or "恒生" in name or symbol in ("HSI", "HSTECH", "HSCEI"):
+            return "HK_SYNC"
+        return "US_LAGGED"
+
+    if target_type == "domestic_future":
+        return "MIXED"
+
+    return "MIXED"

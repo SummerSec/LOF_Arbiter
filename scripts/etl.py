@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 from scripts.db import save_lof_data, init_database
 from scripts.config import load_tracking_config, get_fund_config, get_currency_pairs
-from scripts.tracker import fetch_benchmark_data, fetch_forex_data
+from scripts.tracker import fetch_benchmark_data, fetch_benchmark_changes, fetch_forex_data
 from scripts.estimator import estimate_all, get_estimation_summary
 
 
@@ -158,12 +158,15 @@ def run_etl() -> Dict:
     else:
         print(f"  申购状态: {len(df_purchase)} 条")
     
-    # 4. 获取跟踪标的涨跌幅
+    # 4. 获取跟踪标的涨跌幅 R(T-1) / R(T)
+    benchmark_t0 = {}
     if tracking_config:
-        print("获取跟踪标的实时涨跌幅...")
-        benchmark_data = fetch_benchmark_data(tracking_config)
+        print("获取跟踪标的涨跌幅...")
+        benchmark_data, benchmark_t0 = fetch_benchmark_changes(tracking_config)
         bm_available = sum(1 for v in benchmark_data.values() if v is not None)
-        print(f"  基准数据: {bm_available}/{len(benchmark_data)} 可用")
+        print(f"  R(T-1) 基准: {bm_available}/{len(benchmark_data)} 可用")
+        t0_available = sum(1 for v in benchmark_t0.values() if v is not None)
+        print(f"  R(T) 基准: {t0_available}/{len(benchmark_t0)} 可用")
     else:
         benchmark_data = {}
 
@@ -208,7 +211,7 @@ def run_etl() -> Dict:
     
     # 7. 实时估算净值与溢价率
     print("计算实时估算净值...")
-    df_result = estimate_all(df_result, tracking_config, benchmark_data, fx_data)
+    df_result = estimate_all(df_result, tracking_config, benchmark_data, fx_data, benchmark_t0)
     summary = get_estimation_summary(df_result)
     print(f"  估算方式分布: {summary}")
 
@@ -235,9 +238,15 @@ def run_etl() -> Dict:
             'purchase_limit': row.get('purchase_limit'),
             'daily_limit': row.get('daily_limit'),
             'fee_rate': row.get('fee_rate'),
+            'anchor_nav': row.get('anchor_nav'),
+            'anchor_nav_date': row.get('anchor_nav_date'),
             'estimated_nav': row.get('estimated_nav'),
+            'estimated_nav_tomorrow': row.get('estimated_nav_tomorrow'),
             'benchmark_change_pct': row.get('benchmark_change_pct'),
+            'benchmark_change_t0': row.get('benchmark_change_t0'),
             'fx_change_pct': row.get('fx_change_pct'),
+            'premium_tomorrow_est': row.get('premium_tomorrow_est'),
+            'premium_confidence': row.get('premium_confidence'),
             'premium_rate_legacy': row.get('premium_rate_legacy'),
             'estimation_method': row.get('estimation_method'),
         }
