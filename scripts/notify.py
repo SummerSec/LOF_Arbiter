@@ -37,6 +37,8 @@ from scripts.jisilu import (
     format_fund_external_links,
 )
 
+REPORT_TOP_N = 10
+
 
 def get_env(key: str, default: str = "") -> str:
     return os.environ.get(key, default).strip()
@@ -189,10 +191,10 @@ def _load_report_context(
         "db_path": db,
         "empty": False,
         "df_all": df_all,
-        "df_limited": get_limited_premium_top(n=5, min_premium=0.3),
-        "df_premium": get_premium_top(n=5, min_premium=0.5),
-        "df_suspended": get_suspended_premium_top(n=5, min_premium=0.5),
-        "df_discount": get_discount_top(n=5, min_discount=0.5),
+        "df_limited": get_limited_premium_top(n=REPORT_TOP_N, min_premium=0.3),
+        "df_premium": get_premium_top(n=REPORT_TOP_N, min_premium=0.5),
+        "df_suspended": get_suspended_premium_top(n=REPORT_TOP_N, min_premium=0.5),
+        "df_discount": get_discount_top(n=REPORT_TOP_N, min_discount=0.5),
     }
 
 
@@ -653,7 +655,7 @@ def _html_risk_section() -> str:
         ("交割周期", "LOF 套利 T+2 交割，资金占用约 2 个交易日"),
         ("赎回费用", "持有 ≥7 天通常 0.5%，不足 7 天约 1.5%"),
         ("流动性", "高溢价不等于能成交，需关注成交额"),
-        ("暂停申购", "第四节品种不可申购套利，仅供已有份额的场内卖出参考"),
+        ("暂停申购", "第五节品种不可申购套利，仅供已有份额的场内卖出参考"),
         ("美股 QDII", "仅「当日溢价」可信，次日预估不可作为交易依据"),
         ("港股 QDII", "当日/次日溢价均可较精准计算"),
     ]
@@ -760,32 +762,32 @@ def generate_report_markdown(
         _estimation_summary_md(ctx["df_all"]),
         "---",
         "",
-        "## 二、限购高溢价 TOP5",
+        "## 二、限购高溢价 TOP10",
         "",
         "> **策略提示**：限购 + 高溢价 = 溢价更稳定，优先关注",
         "",
         _fund_table(ctx["df_limited"], show_status=True),
         "---",
         "",
-        "## 三、高溢价 TOP5（卖出赎回套利）",
+        "## 三、高溢价 TOP10（卖出赎回套利）",
         "",
         "> **策略提示**：场内卖出 + 场外赎回，赚取溢价差",
         "",
         _fund_table(ctx["df_premium"]),
         "---",
         "",
-        "## 四、暂停申购·高溢价 TOP5",
-        "",
-        "> **策略提示**：场外申购已关闭，**无法新开申购套利**；若已持仓，可关注场内高溢价卖出机会",
-        "",
-        _fund_table(ctx["df_suspended"], show_status=True),
-        "---",
-        "",
-        "## 五、高折价 TOP5（买入套利）",
+        "## 四、高折价 TOP10（买入套利）",
         "",
         "> **策略提示**：场内买入 + 场外申购，赚取折价差",
         "",
         _fund_table(ctx["df_discount"]),
+        "---",
+        "",
+        "## 五、暂停申购·高溢价 TOP10",
+        "",
+        "> **策略提示**：场外申购已关闭，**无法新开申购套利**；若已持仓，可关注场内高溢价卖出机会",
+        "",
+        _fund_table(ctx["df_suspended"], show_status=True),
         "---",
         "",
         "## 六、风险提示",
@@ -795,7 +797,7 @@ def generate_report_markdown(
         "| 交割周期 | LOF 套利 T+2 交割，资金占用约 2 个交易日 |",
         "| 赎回费用 | 持有 ≥7 天通常 0.5%，不足 7 天约 1.5% |",
         "| 流动性 | 高溢价不等于能成交，需关注成交额 |",
-        "| 暂停申购 | 第四节品种不可申购套利，仅供已有份额的场内卖出参考 |",
+        "| 暂停申购 | 第五节品种不可申购套利，仅供已有份额的场内卖出参考 |",
         "| 美股 QDII | **仅「当日溢价」可信**，次日预估不可作为交易依据 |",
         "| 港股 QDII | 当日/次日溢价均可较精准计算 |",
         "",
@@ -844,28 +846,28 @@ def generate_report_html(
             f"{_estimation_summary_html(ctx['df_all'])}"
             "</header>"
             + _html_section(
-                "二、限购高溢价 TOP5",
+                "二、限购高溢价 TOP10",
                 "限购 + 高溢价 = 溢价更稳定，优先关注",
                 _fund_table_html(ctx["df_limited"], show_status=True),
                 len(ctx["df_limited"]),
             )
             + _html_section(
-                "三、高溢价 TOP5（卖出赎回套利）",
+                "三、高溢价 TOP10（卖出赎回套利）",
                 "场内卖出 + 场外赎回，赚取溢价差",
                 _fund_table_html(ctx["df_premium"]),
                 len(ctx["df_premium"]),
             )
             + _html_section(
-                "四、暂停申购·高溢价 TOP5",
-                "场外申购已关闭，无法新开申购套利；若已持仓，可关注场内高溢价卖出机会",
-                _fund_table_html(ctx["df_suspended"], show_status=True),
-                len(ctx["df_suspended"]),
-            )
-            + _html_section(
-                "五、高折价 TOP5（买入套利）",
+                "四、高折价 TOP10（买入套利）",
                 "场内买入 + 场外申购，赚取折价差",
                 _fund_table_html(ctx["df_discount"]),
                 len(ctx["df_discount"]),
+            )
+            + _html_section(
+                "五、暂停申购·高溢价 TOP10",
+                "场外申购已关闭，无法新开申购套利；若已持仓，可关注场内高溢价卖出机会",
+                _fund_table_html(ctx["df_suspended"], show_status=True),
+                len(ctx["df_suspended"]),
             )
             + _html_risk_section()
             + (

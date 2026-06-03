@@ -394,9 +394,9 @@ def format_arbitrage_report(db_path: str = DEFAULT_DB_PATH) -> str:
         lines.append(f"Estimation: {', '.join(parts)} (total {len(df_all)})")
         lines.append("")
 
-    df_limited = get_limited_premium_top(n=5, min_premium=0.3)
+    df_limited = get_limited_premium_top(n=10, min_premium=0.3)
     if not df_limited.empty:
-        lines.append("🎯 【限购高溢价 TOP5】（优质套利机会）")
+        lines.append("🎯 【限购高溢价 TOP10】（优质套利机会）")
         for _, row in df_limited.iterrows():
             lines.append(format_fund_row(row.to_dict()))
             lines.append("")
@@ -404,24 +404,24 @@ def format_arbitrage_report(db_path: str = DEFAULT_DB_PATH) -> str:
         lines.append("🎯 【限购高溢价】今日暂无满足条件的限购高溢价品种")
         lines.append("")
 
-    df_premium = get_premium_top(n=5, min_premium=0.5)
+    df_premium = get_premium_top(n=10, min_premium=0.5)
     if not df_premium.empty:
-        lines.append("🔥 【高溢价 TOP5】（卖出赎回套利）")
+        lines.append("🔥 【高溢价 TOP10】（卖出赎回套利）")
         for _, row in df_premium.iterrows():
             lines.append(format_fund_row(row.to_dict()))
             lines.append("")
 
-    df_suspended = get_suspended_premium_top(n=5, min_premium=0.5)
-    if not df_suspended.empty:
-        lines.append("⏸️ 【暂停申购·高溢价 TOP5】（仅供持仓参考，不可申购套利）")
-        for _, row in df_suspended.iterrows():
+    df_discount = get_discount_top(n=10, min_discount=0.5)
+    if not df_discount.empty:
+        lines.append("💎 【高折价 TOP10】（买入套利）")
+        for _, row in df_discount.iterrows():
             lines.append(format_fund_row(row.to_dict()))
             lines.append("")
 
-    df_discount = get_discount_top(n=5, min_discount=0.5)
-    if not df_discount.empty:
-        lines.append("💎 【高折价 TOP5】（买入套利）")
-        for _, row in df_discount.iterrows():
+    df_suspended = get_suspended_premium_top(n=10, min_premium=0.5)
+    if not df_suspended.empty:
+        lines.append("⏸️ 【暂停申购·高溢价 TOP10】（仅供持仓参考，不可申购套利）")
+        for _, row in df_suspended.iterrows():
             lines.append(format_fund_row(row.to_dict()))
             lines.append("")
 
