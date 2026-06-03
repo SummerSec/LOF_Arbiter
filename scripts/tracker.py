@@ -4,10 +4,47 @@ LOF Arbiter - 跟踪标的实时涨跌幅抓取
 按 source_func 分组批量调用 akshare，一次 API 调用覆盖所有同类标的。
 """
 
+import time
 import pandas as pd
-from typing import Dict, Optional
+from datetime import date, timedelta
+from typing import Dict, Optional, Callable, Any
 
 from scripts.config import FundTrackingConfig
+
+# 配置里的汇率对 → akshare 符号 / 备用数据源映射
+FOREX_PAIR_SOURCES = {
+    "USDCNH": {
+        "spot_keys": ["USDCNH", "美元离岸", "离岸人民币"],
+        "hist_symbol": "USDCNH",
+        "boc_symbol": "美元",
+    },
+    "HKDCNY": {
+        "spot_keys": ["HKDCNY", "HKDCNYC", "港元兑", "港币兑"],
+        "hist_symbol": "HKDCNYC",
+        "boc_symbol": "港币",
+    },
+}
+
+
+def _retry_call(
+    func: Callable[[], Any],
+    *,
+    retries: int = 3,
+    delay: float = 1.5,
+    label: str = "",
+) -> Any:
+    """对 transient 网络错误进行重试。"""
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            return func()
+        except Exception as e:
+            last_err = e
+            if attempt < retries:
+                wait = delay * attempt
+                print(f"[tracker] {label} 第 {attempt} 次失败，{wait:.1f}s 后重试: {e}")
+                time.sleep(wait)
+    raise last_err
 
 
 def fetch_benchmark_data(configs: Dict[str, FundTrackingConfig]) -> Dict[str, Optional[float]]:
@@ -158,7 +195,7 @@ def fetch_forex_data(configs: Dict[str, FundTrackingConfig]) -> Dict[str, Option
     """
     获取所有 QDII 基金需要的汇率涨跌幅。
 
-    按汇率对去重，一次 forex_spot_em 调用获取全部汇率。
+    优先东方财富实时接口；502/网络失败时自动降级到历史 K 线或新浪中行牌价。
 
     Returns: {currency_pair: change_pct}
     """
@@ -170,25 +207,116 @@ def fetch_forex_data(configs: Dict[str, FundTrackingConfig]) -> Dict[str, Option
     if not pairs:
         return {}
 
-    result: Dict[str, Optional[float]] = {}
+    result: Dict[str, Optional[float]] = {pair: None for pair in pairs}
+
+    # 1) 东方财富实时（带重试）
+    fx_df = None
     try:
         import akshare as ak
-        fx_df = ak.forex_spot_em()
 
-        if fx_df is None or fx_df.empty:
-            for pair in pairs:
-                result[pair] = None
-            return result
-
-        for pair in pairs:
-            change = _find_change_in_df(fx_df, pair, filter_col="名称", change_col="涨跌幅")
-            result[pair] = change
+        fx_df = _retry_call(
+            ak.forex_spot_em,
+            retries=3,
+            delay=2.0,
+            label="forex_spot_em",
+        )
     except Exception as e:
-        print(f"[tracker] 汇率数据获取失败: {e}")
-        for pair in pairs:
-            result[pair] = None
+        print(f"[tracker] 汇率实时数据获取失败: {e}")
 
+    if fx_df is not None and not fx_df.empty:
+        for pair in pairs:
+            change = _find_fx_in_spot(fx_df, pair)
+            if change is not None:
+                result[pair] = change
+
+    # 2) 逐对备用源
+    for pair in pairs:
+        if result[pair] is not None:
+            continue
+        change, source = _fetch_fx_change_fallback(pair)
+        if change is not None:
+            result[pair] = change
+            print(f"[tracker] 汇率 {pair} 使用备用源: {source} → {change:+.4f}%")
+        else:
+            print(f"[tracker] 汇率 {pair} 所有数据源均不可用")
+
+    available = sum(1 for v in result.values() if v is not None)
+    if available < len(pairs):
+        print(f"[tracker] 汇率数据: {available}/{len(pairs)} 可用")
     return result
+
+
+def _find_fx_in_spot(df: pd.DataFrame, pair: str) -> Optional[float]:
+    """在东方财富实时汇率表中查找涨跌幅。"""
+    meta = FOREX_PAIR_SOURCES.get(pair, {})
+    keys = meta.get("spot_keys", [pair])
+
+    for key in keys:
+        for filter_col in ("名称", "代码", "name", "code"):
+            change = _find_change_in_df(df, key, filter_col=filter_col, change_col="涨跌幅")
+            if change is not None:
+                return change
+    return None
+
+
+def _fetch_fx_change_fallback(pair: str) -> tuple:
+    """单汇率对备用获取，返回 (change_pct, source_name)。"""
+    meta = FOREX_PAIR_SOURCES.get(pair, {"spot_keys": [pair]})
+
+    hist_symbol = meta.get("hist_symbol", pair)
+    change = _fetch_fx_change_from_hist(hist_symbol)
+    if change is not None:
+        return change, f"forex_hist_em({hist_symbol})"
+
+    boc_symbol = meta.get("boc_symbol")
+    if boc_symbol:
+        change = _fetch_fx_change_from_boc(boc_symbol)
+        if change is not None:
+            return change, f"currency_boc_sina({boc_symbol})"
+
+    return None, ""
+
+
+def _fetch_fx_change_from_hist(symbol: str) -> Optional[float]:
+    """由东方财富历史 K 线最近两日收盘价计算涨跌幅。"""
+    try:
+        import akshare as ak
+
+        df = _retry_call(
+            lambda: ak.forex_hist_em(symbol=symbol),
+            retries=2,
+            delay=1.5,
+            label=f"forex_hist_em({symbol})",
+        )
+        return _pct_from_last_two_rows(df, "最新价", "close", "收盘")
+    except Exception as e:
+        print(f"[tracker] forex_hist_em({symbol}) 失败: {e}")
+        return None
+
+
+def _fetch_fx_change_from_boc(symbol: str) -> Optional[float]:
+    """由新浪中行牌价最近两个交易日折算价计算涨跌幅。"""
+    try:
+        import akshare as ak
+
+        end = date.today()
+        start = end - timedelta(days=21)
+
+        def _fetch():
+            return ak.currency_boc_sina(
+                symbol=symbol,
+                start_date=start.strftime("%Y%m%d"),
+                end_date=end.strftime("%Y%m%d"),
+            )
+
+        df = _retry_call(_fetch, retries=2, delay=1.5, label=f"currency_boc_sina({symbol})")
+        if df is None or df.empty:
+            return None
+        df = df.sort_values("日期")
+        return _pct_from_last_two_rows(df, "中行折算价", "央行中间价")
+    except Exception as e:
+        print(f"[tracker] currency_boc_sina({symbol}) 失败: {e}")
+        return None
 
 
 def _call_source_func(func_name: str, fund_codes: list, configs: Dict[str, FundTrackingConfig]):

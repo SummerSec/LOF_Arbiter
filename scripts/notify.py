@@ -21,6 +21,8 @@ from typing import Optional, List
 
 import pandas as pd
 
+from scripts.jisilu import JISILU_LOF_LIST_URL, jisilu_detail_url
+
 
 def get_env(key: str, default: str = "") -> str:
     return os.environ.get(key, default).strip()
@@ -139,7 +141,7 @@ def _fund_table(df: pd.DataFrame, show_status: bool = False) -> str:
     if df.empty:
         return "_今日暂无满足条件的品种_\n"
 
-    headers = ["基金", "代码", "当日溢价", "现价", "预估净值", "成交额", "置信度"]
+    headers = ["基金", "代码", "当日溢价", "现价", "预估净值", "成交额", "集思录", "置信度"]
     if show_status:
         headers.insert(6, "申购状态")
 
@@ -148,9 +150,14 @@ def _fund_table(df: pd.DataFrame, show_status: bool = False) -> str:
     for _, row in df.iterrows():
         est_nav = row.get("estimated_nav") or row.get("nav") or row.get("prev_nav")
         est_str = f"{est_nav:.4f}" if est_nav is not None and not pd.isna(est_nav) else "—"
+        code_raw = row.get("fund_code_full") or row.get("fund_code") or ""
+        code_display = str(code_raw)
+        js_url = jisilu_detail_url(code_raw)
+        name = str(row.get("fund_name", ""))
+
         cells = [
-            str(row.get("fund_name", "")),
-            str(row.get("fund_code_full", "")),
+            f"[{name}]({js_url})",
+            f"[{code_display}]({js_url})",
             _format_premium_md(row.get("premium_rate")),
             f"{row.get('price', 0):.3f}" if row.get("price") else "—",
             est_str,
@@ -158,6 +165,7 @@ def _fund_table(df: pd.DataFrame, show_status: bool = False) -> str:
         ]
         if show_status:
             cells.append(_status_badge(row.get("purchase_status", "")))
+        cells.append(f"[详情]({js_url})")
         cells.append(_confidence_label(row.get("estimation_method", ""), row.get("premium_confidence", "")))
         rows.append("| " + " | ".join(cells) + " |")
 
@@ -231,8 +239,8 @@ def generate_report_markdown(
         "# LOF 套利日报",
         "",
         f"> **生成时间**：{now}（北京时间）  ",
-        "> **数据来源**：LOF Arbiter 自动 ETL  ",
-        "> **溢价说明**：基于 T-2 锚定 + R(T-1) 估算，非实际净值",
+        f"> **数据来源**：LOF Arbiter 自动 ETL · [集思录 LOF 列表]({JISILU_LOF_LIST_URL})  ",
+        "> **溢价说明**：基于 T-2 锚定 + R(T-1) 估算，非实际净值 · 点击基金名/代码/详情跳转集思录",
         "",
         "---",
         "",

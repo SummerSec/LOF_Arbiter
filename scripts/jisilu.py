@@ -15,8 +15,23 @@ from datetime import datetime
 from scripts.db import init_database, save_jisilu_data, get_connection
 
 JISILU_BASE = "https://www.jisilu.cn/data/lof/hist_list"
+JISILU_LOF_LIST_URL = "https://www.jisilu.cn/data/lof/"
+JISILU_DETAIL_BASE = "https://www.jisilu.cn/data/lof/detail"
 DEFAULT_PARAMS = {"___jsl": "LST___t", "rp": "50", "page": "1"}
 REQUEST_DELAY = 0.5  # seconds between requests to avoid rate limiting
+
+
+def clean_fund_code(fund_code: str) -> str:
+    """提取 6 位基金代码，供集思录链接等使用。"""
+    code = str(fund_code or "").strip().upper()
+    for token in (".SZ", ".SH", "SZ", "SH", "."):
+        code = code.replace(token, "")
+    return code
+
+
+def jisilu_detail_url(fund_code: str) -> str:
+    """集思录 LOF 详情页 URL，例如 https://www.jisilu.cn/data/lof/detail/162411"""
+    return f"{JISILU_DETAIL_BASE}/{clean_fund_code(fund_code)}"
 
 # Common LOF codes from lof-arbitrage's all_LOF.txt
 DEFAULT_CODES = [
