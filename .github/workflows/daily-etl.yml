@@ -54,27 +54,27 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           python -c "
-          from scripts.notify import generate_report_text
-          report = generate_report_text()
+          from scripts.notify import generate_report_markdown
+          from datetime import datetime, timezone, timedelta
+          bj = datetime.now(timezone(timedelta(hours=8)))
+          report = generate_report_markdown(generated_at=bj.strftime('%Y-%m-%d %H:%M'))
+          open('/tmp/report.md', 'w', encoding='utf-8').write(report)
           print(report)
-          " > /tmp/report.txt
-          echo "report<<EOF" >> $GITHUB_OUTPUT
-          cat /tmp/report.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          "
 
       - name: Create GitHub Issue
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const report = fs.readFileSync('/tmp/report.txt', 'utf8');
+            const report = fs.readFileSync('/tmp/report.md', 'utf8');
 
             const now = new Date();
             const bjTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-            const timeStr = bjTime.toISOString().replace('T', ' ').substring(0, 16);
             const dateStr = bjTime.toISOString().substring(0, 10);
+            const timeStr = bjTime.toISOString().substring(11, 16);
 
-            // Close yesterday's report issue
+            // 关闭上一份日报 Issue
             const issues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -92,12 +92,12 @@ jobs:
               });
             }
 
-            // Create new report issue
+            // 创建新日报 Issue（中文标题 + Markdown 正文）
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `${dateStr} ${timeStr.substring(11)} LOF套利日报`,
-              body: '```\n' + report + '\n```',
+              title: `【LOF套利日报】${dateStr} ${timeStr}`,
+              body: report,
               labels: ['daily-report']
             });
 
