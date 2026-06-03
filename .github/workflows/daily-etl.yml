@@ -54,12 +54,15 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           python -c "
-          from scripts.notify import generate_report_markdown
+          from scripts.notify import write_daily_reports
           from datetime import datetime, timezone, timedelta
           bj = datetime.now(timezone(timedelta(hours=8)))
-          report = generate_report_markdown(generated_at=bj.strftime('%Y-%m-%d %H:%M'))
-          open('/tmp/report.md', 'w', encoding='utf-8').write(report)
-          print(report)
+          paths = write_daily_reports(
+              generated_at=bj.strftime('%Y-%m-%d %H:%M'),
+              html_path='docs/index.html',
+              md_path='/tmp/report.md',
+          )
+          print(paths['markdown'])
           "
 
       - name: Create GitHub Issue
@@ -93,15 +96,12 @@ jobs:
             }
 
             // 创建新日报 Issue（中文标题 + Markdown 正文）
-            // assign + @mention 仓库 owner，确保 GitHub 邮件通知可达（bot 单独开 issue 默认不通知）
-            const owner = context.repo.owner;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `【LOF套利日报】${dateStr} ${timeStr}`,
-              body: report + `\n\n---\n\n/cc @${owner}`,
+              body: report,
               labels: ['daily-report'],
-              assignees: [owner],
             });
 
       - name: Commit and push data
@@ -111,7 +111,7 @@ jobs:
           git config user.email "bot@lof-arbiter.dev"
 
           git add data/lof_arbiter.db data/*.csv -f 2>/dev/null || true
-          git add data/ -f 2>/dev/null || true
+          git add data/ docs/index.html -f 2>/dev/null || true
 
           if git diff --cached --quiet; then
             echo "No data changes, skipping commit"

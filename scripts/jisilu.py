@@ -17,6 +17,12 @@ from scripts.db import init_database, save_jisilu_data, get_connection
 JISILU_BASE = "https://www.jisilu.cn/data/lof/hist_list"
 JISILU_LOF_LIST_URL = "https://www.jisilu.cn/data/lof/"
 JISILU_DETAIL_BASE = "https://www.jisilu.cn/data/lof/detail"
+EASTMONEY_FUND_BASE = "https://fund.eastmoney.com"
+THS_FUND_BASE = "https://fund.10jqka.com.cn"
+LYLOF_ARBITRAGE_URL = "https://www.lylof.com/arbitrage"
+TRADESMART_LOF_URL = "https://www.lowrisktradesmart.org/zh/tools/lof-premium"
+XUEQIU_FUND_BASE = "https://xueqiu.com/S"
+REPORT_PAGE_URL = "https://summersec.github.io/LOF_Arbiter/"
 DEFAULT_PARAMS = {"___jsl": "LST___t", "rp": "50", "page": "1"}
 REQUEST_DELAY = 0.5  # seconds between requests to avoid rate limiting
 
@@ -33,6 +39,72 @@ def jisilu_detail_url(fund_code: str) -> str:
     """集思录 LOF 详情页 URL，例如 https://www.jisilu.cn/data/lof/detail/162411"""
     return f"{JISILU_DETAIL_BASE}/{clean_fund_code(fund_code)}"
 
+
+def eastmoney_fund_url(fund_code: str) -> str:
+    """东方财富（天天基金）详情页，例如 https://fund.eastmoney.com/162411.html"""
+    return f"{EASTMONEY_FUND_BASE}/{clean_fund_code(fund_code)}.html"
+
+
+def ths_fund_url(fund_code: str) -> str:
+    """同花顺爱基金详情页，例如 https://fund.10jqka.com.cn/162411/"""
+    return f"{THS_FUND_BASE}/{clean_fund_code(fund_code)}/"
+
+
+def fund_exchange_prefix(fund_code: str) -> str:
+    """推断交易所前缀 SH / SZ，供雪球等链接使用。"""
+    code = clean_fund_code(fund_code)
+    if code.startswith(("501", "502", "503", "506")):
+        return "SH"
+    if code.startswith("16"):
+        return "SZ"
+    raw = str(fund_code or "").strip().upper()
+    if ".SH" in raw or raw.startswith("SH"):
+        return "SH"
+    if ".SZ" in raw or raw.startswith("SZ"):
+        return "SZ"
+    return "SZ"
+
+
+def xueqiu_fund_url(fund_code: str) -> str:
+    """雪球基金行情页，例如 https://xueqiu.com/S/SZ162411"""
+    code = clean_fund_code(fund_code)
+    return f"{XUEQIU_FUND_BASE}/{fund_exchange_prefix(fund_code)}{code}"
+
+
+def lylof_arbitrage_url() -> str:
+    """路远信息 LOF 套利全表（无单只详情页）。"""
+    return LYLOF_ARBITRAGE_URL
+
+
+def tradesmart_lof_url() -> str:
+    """TradeSmart LOF/ETF 溢价监控页。"""
+    return TRADESMART_LOF_URL
+
+
+def _external_link_items(fund_code: str) -> list:
+    return [
+        ("集思录", jisilu_detail_url(fund_code)),
+        ("东财", eastmoney_fund_url(fund_code)),
+        ("同花顺", ths_fund_url(fund_code)),
+        ("路远", lylof_arbitrage_url()),
+        ("TradeSmart", tradesmart_lof_url()),
+        ("雪球", xueqiu_fund_url(fund_code)),
+    ]
+
+
+def format_fund_external_links(fund_code: str) -> str:
+    """Markdown：集思录 · 东财 · 同花顺 · 路远 · TradeSmart · 雪球"""
+    return " · ".join(
+        f"[{label}]({url})" for label, url in _external_link_items(fund_code)
+    )
+
+
+def format_fund_external_links_html(fund_code: str) -> str:
+    """HTML 外链单元格。"""
+    return " · ".join(
+        f'<a href="{url}" target="_blank" rel="noopener">{label}</a>'
+        for label, url in _external_link_items(fund_code)
+    )
 # Common LOF codes from lof-arbitrage's all_LOF.txt
 DEFAULT_CODES = [
     "163418", "169101", "501082", "160421", "161232", "160135", "163113",

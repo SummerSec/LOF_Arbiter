@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LOF 套利日报 · 2026-06-03 22:24</title>
+  <meta name="description" content="LOF 基金折溢价套利日报，含限购/高溢价/暂停申购/高折价 TOP 榜单。">
+  <style>
+:root {
+  --bg: #f5f1ea;
+  --bg-soft: #fdfcfa;
+  --bg-hover: #fdf8ef;
+  --card: #ffffff;
+  --ink: #1a1a2e;
+  --muted: #5c6d7e;
+  --muted-light: #9ca3af;
+  --border: #e5e0d8;
+  --border-soft: #f0ebe3;
+  --accent: #8b6914;
+  --accent-soft: rgba(139, 105, 20, 0.1);
+  --code: #2c7dc3;
+  --up: #dc2626;
+  --down: #16a34a;
+  --focus: #fffbf0;
+  --header: #1a1a2e;
+  --shadow: 0 1px 2px rgba(26, 26, 46, 0.06);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 16px 56px;
+}
+.hero { margin-bottom: 28px; }
+.hero-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.hero h1 {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.subtitle {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.sources {
+  margin: 6px 0 0;
+  color: var(--muted-light);
+  font-size: 12px;
+}
+.sources a, .footer a { color: var(--accent); text-decoration: none; }
+.sources a:hover, .footer a:hover { text-decoration: underline; }
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+}
+.stat-card .label {
+  font-size: 12px;
+  color: var(--muted-light);
+}
+.stat-card .value {
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.section { margin-bottom: 28px; }
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.section-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.section-count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+.section-hint {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.table-scroll { overflow-x: auto; }
+table.data {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.data thead tr {
+  background: var(--header);
+  color: rgba(255, 255, 255, 0.92);
+}
+table.data th {
+  padding: 10px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+table.data th.col-center,
+table.data td.num,
+table.data td.code,
+table.data td.links {
+  text-align: center;
+}
+table.data th.col-focus {
+  background: var(--accent);
+  color: #fff;
+}
+table.data td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+table.data tbody tr:nth-child(even) { background: var(--bg-soft); }
+table.data tbody tr:hover { background: var(--bg-hover); }
+table.data tbody tr:last-child td { border-bottom: none; }
+td.code {
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+td.code a { color: var(--code); text-decoration: none; }
+td.code a:hover { text-decoration: underline; }
+td.name {
+  max-width: 220px;
+  font-weight: 600;
+}
+td.name a { color: var(--ink); text-decoration: none; }
+td.name a:hover { color: var(--accent); }
+td.num {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+td.muted, .muted { color: var(--muted-light); }
+.premium-up { color: var(--up); font-weight: 600; }
+.premium-down { color: var(--down); font-weight: 600; }
+.premium-focus {
+  background: var(--focus);
+  font-weight: 700;
+}
+td.links { white-space: nowrap; }
+.link-pill {
+  display: inline-block;
+  margin: 1px 2px 1px 0;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: #f5f1ea;
+  border: 1px solid var(--border);
+  text-decoration: none;
+}
+.link-pill:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pill-ok {
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+}
+.pill-danger {
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+}
+.pill-warn {
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+.pill-info {
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+}
+.pill-muted {
+  color: var(--muted);
+  background: #f5f1ea;
+  border: 1px solid var(--border);
+}
+.risk-card .risk-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+}
+.risk-card .risk-row:last-child { border-bottom: none; }
+.risk-card .risk-type { font-weight: 600; color: var(--ink); }
+.risk-card .risk-desc { color: var(--muted); }
+.footer {
+  margin-top: 36px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted-light);
+  font-size: 12px;
+  text-align: center;
+}
+.empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted-light);
+  font-size: 14px;
+}
+@media (max-width: 640px) {
+  .hero h1 { font-size: 1.35rem; }
+  .stat-card .value { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+  <div class="page">
+<header class="hero"><div class="hero-top"><h1>LOF 套利日报</h1><span class="count-badge">382 只基金</span></div><p class="subtitle">A 股 LOF 折溢价套利机会日报，溢价基于 T-2 锚定 + R(T-1) 估算，非实际净值。</p><p class="sources">生成时间：2026-06-03 22:24（北京时间） · 数据来源：LOF Arbiter ETL · 参考：<a href="https://www.jisilu.cn/data/lof/" target="_blank" rel="noopener">集思录</a> · <a href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a> · <a href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TradeSmart</a> · <a href="https://github.com/SummerSec/LOF_Arbiter" target="_blank" rel="noopener">GitHub</a></p><div class="stat-grid"><div class="stat-card"><div class="label">覆盖基金</div><div class="value">382</div></div><div class="stat-card"><div class="label">可跟踪估算</div><div class="value">0</div></div><div class="stat-card"><div class="label">官方净值</div><div class="value">379</div></div><div class="stat-card"><div class="label">无数据</div><div class="value">3</div></div></div></header><section class="section"><div class="section-head"><h2>二、限购高溢价 TOP5</h2><span class="section-count">1 只</span></div><p class="section-hint">限购 + 高溢价 = 溢价更稳定，优先关注</p><div class="card"><div class="table-scroll"><table class="data">
+    <thead><tr>
+      <th class="col-center">代码</th>
+      <th>名称</th>
+      <th class="col-center">现价</th>
+      <th class="col-center col-focus">溢价</th>
+      <th class="col-center">预估净值</th>
+      <th class="col-center">成交额</th>
+      <th class="col-center">申购</th>
+      <th class="col-center">置信度</th>
+      <th class="col-center">外链</th>
+    </tr></thead>
+    <tbody><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/160323" target="_blank" rel="noopener">160323</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/160323" target="_blank" rel="noopener" title="华夏磐泰LOF">华夏磐泰LOF</a></td><td class="num">¥1.7890</td><td class="num premium-up premium-focus">+0.36%</td><td class="num">1.7826</td><td class="num">163.80万</td><td class="num"><span class="pill pill-warn">限购</span></td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/160323" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/160323.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/160323/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SZ160323" target="_blank" rel="noopener">雪球</a></td></tr></tbody></table></div></div></section><section class="section"><div class="section-head"><h2>三、高溢价 TOP5（卖出赎回套利）</h2><span class="section-count">5 只</span></div><p class="section-hint">场内卖出 + 场外赎回，赚取溢价差</p><div class="card"><div class="table-scroll"><table class="data">
+    <thead><tr>
+      <th class="col-center">代码</th>
+      <th>名称</th>
+      <th class="col-center">现价</th>
+      <th class="col-center col-focus">溢价</th>
+      <th class="col-center">预估净值</th>
+      <th class="col-center">成交额</th>
+      
+      <th class="col-center">置信度</th>
+      <th class="col-center">外链</th>
+    </tr></thead>
+    <tbody><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/160322" target="_blank" rel="noopener">160322</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/160322" target="_blank" rel="noopener" title="港股精选LOF">港股精选LOF</a></td><td class="num">¥1.1960</td><td class="num premium-up premium-focus"><strong>+3.91%</strong></td><td class="num">1.1510</td><td class="num">152.00万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/160322" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/160322.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/160322/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SZ160322" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/501079" target="_blank" rel="noopener">501079</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/501079" target="_blank" rel="noopener" title="科创大成LOF">科创大成LOF</a></td><td class="num">¥5.1510</td><td class="num premium-up premium-focus"><strong>+1.78%</strong></td><td class="num">5.0607</td><td class="num">508.66万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/501079" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/501079.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/501079/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SH501079" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/501082" target="_blank" rel="noopener">501082</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/501082" target="_blank" rel="noopener" title="科创投资LOF">科创投资LOF</a></td><td class="num">¥4.6520</td><td class="num premium-up premium-focus"><strong>+1.65%</strong></td><td class="num">4.5766</td><td class="num">342.50万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/501082" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/501082.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/501082/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SH501082" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/501026" target="_blank" rel="noopener">501026</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/501026" target="_blank" rel="noopener" title="财通福享混合LOF">财通福享混合LOF</a></td><td class="num">¥2.6370</td><td class="num premium-up premium-focus"><strong>+1.19%</strong></td><td class="num">2.6061</td><td class="num">2769.99万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/501026" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/501026.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/501026/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SH501026" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/501085" target="_blank" rel="noopener">501085</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/501085" target="_blank" rel="noopener" title="财通科创LOF">财通科创LOF</a></td><td class="num">¥3.6980</td><td class="num premium-up premium-focus">+0.99%</td><td class="num">3.6618</td><td class="num">178.19万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/501085" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/501085.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/501085/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SH501085" target="_blank" rel="noopener">雪球</a></td></tr></tbody></table></div></div></section><section class="section"><div class="section-head"><h2>四、暂停申购·高溢价 TOP5</h2><span class="section-count">5 只</span></div><p class="section-hint">场外申购已关闭，无法新开申购套利；若已持仓，可关注场内高溢价卖出机会</p><div class="card"><div class="table-scroll"><table class="data">
+    <thead><tr>
+      <th class="col-center">代码</th>
+      <th>名称</th>
+      <th class="col-center">现价</th>
+      <th class="col-center col-focus">溢价</th>
+      <th class="col-center">预估净值</th>
+      <th class="col-center">成交额</th>
+      <th class="col-center">申购</th>
+      <th class="col-center">置信度</th>
+      <th class="col-center">外链</th>
+    </tr></thead>
+    <tbody><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/501225" target="_blank" rel="noopener">501225</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/501225" target="_blank" rel="noopener" title="全球芯片LOF">全球芯片LOF</a></td><td class="num">¥4.5450</td><td class="num premium-up premium-focus"><strong>+36.00%</strong></td><td class="num">3.3418</td><td class="num">4644.32万</td><td class="num"><span class="pill pill-danger">暂停</span></td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/501225" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/501225.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/501225/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SH501225" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/501046" target="_blank" rel="noopener">501046</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/501046" target="_blank" rel="noopener" title="财通福鑫定开混合">财通福鑫定开混合</a></td><td class="num">¥12.1210</td><td class="num premium-up premium-focus"><strong>+25.35%</strong></td><td class="num">9.6701</td><td class="num">5673.88万</td><td class="num"><span class="pill pill-danger">暂停</span></td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/501046" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/501046.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/501046/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SH501046" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/160644" target="_blank" rel="noopener">160644</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/160644" target="_blank" rel="noopener" title="港美互联网LOF">港美互联网LOF</a></td><td class="num">¥2.3070</td><td class="num premium-up premium-focus"><strong>+9.95%</strong></td><td class="num">2.0982</td><td class="num">17.42亿</td><td class="num"><span class="pill pill-danger">暂停</span></td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/160644" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/160644.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/160644/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SZ160644" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/501018" target="_blank" rel="noopener">501018</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/501018" target="_blank" rel="noopener" title="南方原油LOF">南方原油LOF</a></td><td class="num">¥2.0230</td><td class="num premium-up premium-focus"><strong>+9.78%</strong></td><td class="num">1.8427</td><td class="num">4.81亿</td><td class="num"><span class="pill pill-danger">暂停</span></td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/501018" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/501018.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/501018/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SH501018" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/160723" target="_blank" rel="noopener">160723</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/160723" target="_blank" rel="noopener" title="嘉实原油LOF">嘉实原油LOF</a></td><td class="num">¥2.2530</td><td class="num premium-up premium-focus"><strong>+6.82%</strong></td><td class="num">2.1091</td><td class="num">6.31亿</td><td class="num"><span class="pill pill-danger">暂停</span></td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/160723" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/160723.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/160723/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SZ160723" target="_blank" rel="noopener">雪球</a></td></tr></tbody></table></div></div></section><section class="section"><div class="section-head"><h2>五、高折价 TOP5（买入套利）</h2><span class="section-count">5 只</span></div><p class="section-hint">场内买入 + 场外申购，赚取折价差</p><div class="card"><div class="table-scroll"><table class="data">
+    <thead><tr>
+      <th class="col-center">代码</th>
+      <th>名称</th>
+      <th class="col-center">现价</th>
+      <th class="col-center col-focus">溢价</th>
+      <th class="col-center">预估净值</th>
+      <th class="col-center">成交额</th>
+      
+      <th class="col-center">置信度</th>
+      <th class="col-center">外链</th>
+    </tr></thead>
+    <tbody><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/164906" target="_blank" rel="noopener">164906</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/164906" target="_blank" rel="noopener" title="中概互联网LOF">中概互联网LOF</a></td><td class="num">¥0.9880</td><td class="num premium-down premium-focus"><strong>-3.04%</strong></td><td class="num">1.0190</td><td class="num">1253.08万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/164906" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/164906.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/164906/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SZ164906" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/164824" target="_blank" rel="noopener">164824</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/164824" target="_blank" rel="noopener" title="印度基金LOF">印度基金LOF</a></td><td class="num">¥1.2550</td><td class="num premium-down premium-focus"><strong>-2.14%</strong></td><td class="num">1.2825</td><td class="num">2380.28万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/164824" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/164824.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/164824/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SZ164824" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/501203" target="_blank" rel="noopener">501203</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/501203" target="_blank" rel="noopener" title="易基创新未来LOF">易基创新未来LOF</a></td><td class="num">¥1.6210</td><td class="num premium-down premium-focus"><strong>-2.11%</strong></td><td class="num">1.6560</td><td class="num">732.94万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/501203" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/501203.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/501203/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SH501203" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/163412" target="_blank" rel="noopener">163412</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/163412" target="_blank" rel="noopener" title="兴全轻资产LOF">兴全轻资产LOF</a></td><td class="num">¥4.2900</td><td class="num premium-down premium-focus"><strong>-1.92%</strong></td><td class="num">4.3740</td><td class="num">178.89万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/163412" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/163412.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/163412/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SZ163412" target="_blank" rel="noopener">雪球</a></td></tr><tr><td class="code"><a href="https://www.jisilu.cn/data/lof/detail/501095" target="_blank" rel="noopener">501095</a></td><td class="name"><a href="https://www.jisilu.cn/data/lof/detail/501095" target="_blank" rel="noopener" title="中银证券科技创新LOF">中银证券科技创新LOF</a></td><td class="num">¥1.0890</td><td class="num premium-down premium-focus"><strong>-1.83%</strong></td><td class="num">1.1093</td><td class="num">419.99万</td><td class="num"><span class="pill pill-muted">官方净值</span></td><td class="links"><a class="link-pill" href="https://www.jisilu.cn/data/lof/detail/501095" target="_blank" rel="noopener">集思录</a><a class="link-pill" href="https://fund.eastmoney.com/501095.html" target="_blank" rel="noopener">东财</a><a class="link-pill" href="https://fund.10jqka.com.cn/501095/" target="_blank" rel="noopener">同花顺</a><a class="link-pill" href="https://www.lylof.com/arbitrage" target="_blank" rel="noopener">路远</a><a class="link-pill" href="https://www.lowrisktradesmart.org/zh/tools/lof-premium" target="_blank" rel="noopener">TS</a><a class="link-pill" href="https://xueqiu.com/S/SH501095" target="_blank" rel="noopener">雪球</a></td></tr></tbody></table></div></div></section><section class="section"><div class="section-head"><h2>六、风险提示</h2></div><p class="section-hint">操作前请结合流动性、限额与基金公司公告综合判断</p><div class="card risk-card"><div class="risk-row"><div class="risk-type">交割周期</div><div class="risk-desc">LOF 套利 T+2 交割，资金占用约 2 个交易日</div></div><div class="risk-row"><div class="risk-type">赎回费用</div><div class="risk-desc">持有 ≥7 天通常 0.5%，不足 7 天约 1.5%</div></div><div class="risk-row"><div class="risk-type">流动性</div><div class="risk-desc">高溢价不等于能成交，需关注成交额</div></div><div class="risk-row"><div class="risk-type">暂停申购</div><div class="risk-desc">第四节品种不可申购套利，仅供已有份额的场内卖出参考</div></div><div class="risk-row"><div class="risk-type">美股 QDII</div><div class="risk-desc">仅「当日溢价」可信，次日预估不可作为交易依据</div></div><div class="risk-row"><div class="risk-type">港股 QDII</div><div class="risk-desc">当日/次日溢价均可较精准计算</div></div></div></section><p class="footer">由 <a href="https://github.com/SummerSec/LOF_Arbiter">LOF Arbiter</a> 自动生成 · 固定页面 <a href="https://summersec.github.io/LOF_Arbiter/">https://summersec.github.io/LOF_Arbiter/</a></p>
+  </div>
+</body>
+</html>
