@@ -103,7 +103,7 @@ jobs:
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `LOF Arbitrage Report - ${dateStr} ${timeStr.substring(11)}`,
+              title: `${dateStr} ${timeStr.substring(11)} LOF套利日报`,
               body: '```\n' + report + '\n```',
               labels: ['daily-report']
             });
