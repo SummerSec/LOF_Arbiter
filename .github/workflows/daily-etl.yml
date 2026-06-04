@@ -99,7 +99,7 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('/tmp/report.md', 'utf8');
-            const body = `${report}\n\n---\n\n/cc @SummerSec @Barry04`;
+            const body = `${report}\n\n---\n\n@SummerSec @Barry04`;
 
             const now = new Date();
             const bjTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
