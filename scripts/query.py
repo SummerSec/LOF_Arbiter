@@ -71,7 +71,13 @@ def get_lof_data(
         df['status_class'] = df['purchase_status'].apply(classify_status)
 
         if 'daily_limit' in df.columns:
-            df['onsite_subscribe_limit'] = df['daily_limit'].apply(resolve_onsite_subscribe_limit)
+            df['onsite_subscribe_min'] = df.apply(
+                lambda row: resolve_onsite_subscribe_min(
+                    row.get('fund_code_full') or row.get('fund_code') or ''
+                ),
+                axis=1,
+            )
+            df['onsite_subscribe_max'] = df['daily_limit'].apply(resolve_onsite_subscribe_limit)
 
         return df
     finally:
@@ -293,10 +299,28 @@ def _format_premium(premium: float) -> str:
 
 # 东方财富 daily_limit 中 1e11 量级表示「不限额」
 _UNLIMITED_DAILY_LIMIT = 1e10
+# 场内申购最低限额：上交所 LOF 1000 元，深交所 LOF 100 元
+_SH_LOF_MIN = 1000.0
+_SZ_LOF_MIN = 100.0
+
+
+def _clean_fund_code(fund_code: str) -> str:
+    code = str(fund_code or "").strip().upper()
+    for token in (".SZ", ".SH", "SZ", "SH", "."):
+        code = code.replace(token, "")
+    return code
+
+
+def resolve_onsite_subscribe_min(fund_code: str) -> float:
+    """场内申购最低限额（交易所惯例，非场外购买起点）。"""
+    code = _clean_fund_code(fund_code)
+    if code.startswith(("501", "502", "503", "506")):
+        return _SH_LOF_MIN
+    return _SZ_LOF_MIN
 
 
 def resolve_onsite_subscribe_limit(daily_limit) -> Optional[float]:
-    """从日累计限定金额解析场内申购限额（非场外购买起点）。"""
+    """从日累计限定金额解析场内申购最高限额（非场外购买起点）。"""
     if daily_limit is None or pd.isna(daily_limit):
         return None
     try:
@@ -308,16 +332,25 @@ def resolve_onsite_subscribe_limit(daily_limit) -> Optional[float]:
     return amount
 
 
-def format_onsite_subscribe_limit(daily_limit, empty_label: str = "不限") -> str:
-    """格式化场内申购日限额（元）。"""
-    amount = resolve_onsite_subscribe_limit(daily_limit)
+def format_onsite_subscribe_amount(amount: Optional[float], empty_label: str = "不限") -> str:
+    """格式化场内申购金额（元）。"""
     if amount is None:
         return empty_label
     if amount >= 10000:
         return f"{amount / 10000:.2f}万"
-    if amount.is_integer():
+    if float(amount).is_integer():
         return f"{amount:.0f}元"
     return f"{amount:.2f}元"
+
+
+def format_onsite_subscribe_limit(daily_limit, empty_label: str = "不限") -> str:
+    """格式化场内申购最高限额（日累计）。"""
+    return format_onsite_subscribe_amount(resolve_onsite_subscribe_limit(daily_limit), empty_label)
+
+
+def format_onsite_subscribe_min(fund_code: str) -> str:
+    """格式化场内申购最低限额。"""
+    return format_onsite_subscribe_amount(resolve_onsite_subscribe_min(fund_code), empty_label="—")
 
 
 def _confidence_label(method: str, confidence: str) -> str:
@@ -348,7 +381,9 @@ def format_fund_row(row: Dict, include_status: bool = True) -> str:
     turnover = row.get('turnover') or 0
     turnover_wan = turnover / 10000 if turnover else 0
     status = row.get('purchase_status', '未知')
-    subscribe_limit = format_onsite_subscribe_limit(row.get('daily_limit'))
+    code = row.get('fund_code_full') or row.get('fund_code') or ''
+    subscribe_min = format_onsite_subscribe_min(code)
+    subscribe_max = format_onsite_subscribe_limit(row.get('daily_limit'))
     est_nav = row.get('estimated_nav')
     est_nav_tomorrow = row.get('estimated_nav_tomorrow')
     bm_change = row.get('benchmark_change_pct')
@@ -410,7 +445,9 @@ def format_fund_row(row: Dict, include_status: bool = True) -> str:
     elif method == 'LEGACY':
         lines.append("  [Legacy] 无跟踪配置，溢价基于最新官方净值")
 
-    lines.append(f"  成交额: {turnover_str} | 场内申购限额: {subscribe_limit} | 状态: {status}")
+    lines.append(
+        f"  成交额: {turnover_str} | 场内申购: {subscribe_min}~{subscribe_max} | 状态: {status}"
+    )
 
     return "\n".join(lines)
 

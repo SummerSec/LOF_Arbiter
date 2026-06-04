@@ -23,6 +23,7 @@ from scripts.query import (
     get_limited_premium_top,
     get_fund_by_code,
     format_onsite_subscribe_limit,
+    format_onsite_subscribe_min,
     DEFAULT_DB_PATH,
 )
 from scripts.jisilu import get_jisilu_latest, get_jisilu_data
@@ -182,7 +183,10 @@ with col1:
                 st.metric("Price", f"{price:.4f}")
                 st.metric("NAV", f"{nav:.4f}")
                 if data_source == "Local (akshare + estimator)":
-                    st.metric("On-Exchange Limit", format_onsite_subscribe_limit(latest.get("daily_limit")))
+                    fund_code = latest.get("fund_code_full") or latest.get("fund_code") or code
+                    col_a, col_b = st.columns(2)
+                    col_a.metric("On-Exchange Min", format_onsite_subscribe_min(fund_code))
+                    col_b.metric("On-Exchange Max", format_onsite_subscribe_limit(latest.get("daily_limit")))
 
 # ---- Column 2: Premium Ranking ----
 with col2:
@@ -204,9 +208,11 @@ with col2:
             display_names = ["Code", "Premium (%)"]
             if data_source == "Local (akshare + estimator)" and "daily_limit" in rank_df.columns:
                 rank_df = rank_df.copy()
-                rank_df["onsite_limit_display"] = rank_df["daily_limit"].apply(format_onsite_subscribe_limit)
-                display_cols.append("onsite_limit_display")
-                display_names.append("On-Exchange Limit")
+                code_series = rank_df["fund_code_full"].fillna(rank_df[code_col]) if "fund_code_full" in rank_df.columns else rank_df[code_col]
+                rank_df["onsite_min_display"] = code_series.apply(format_onsite_subscribe_min)
+                rank_df["onsite_max_display"] = rank_df["daily_limit"].apply(format_onsite_subscribe_limit)
+                display_cols.extend(["onsite_min_display", "onsite_max_display"])
+                display_names.extend(["On-Exchange Min", "On-Exchange Max"])
             display = rank_df[display_cols].copy()
             display.columns = display_names
             display = display.reset_index(drop=True)

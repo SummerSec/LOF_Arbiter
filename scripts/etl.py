@@ -101,7 +101,7 @@ def fetch_lof_purchase() -> pd.DataFrame:
     获取 LOF 基金申购状态（来自东方财富场外申购状态表）。
 
     purchase_limit（购买起点）为场外首次申购门槛；LOF 套利展示应使用
-    daily_limit（日累计限定金额）作为场内申购日限额参考。
+    daily_limit（日累计限定金额）作为场内申购最高限额，最低限额按交易所惯例推断。
     """
     try:
         df = ak.fund_purchase_em()
