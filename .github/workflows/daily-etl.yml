@@ -2,8 +2,8 @@ name: Daily LOF ETL
 
 on:
   schedule:
-    # 北京时间 工作日 14:00 = UTC 06:00
-    - cron: "0 6 * * 1-5"
+    # 北京时间 工作日 13:30 = UTC 05:30
+    - cron: "30 5 * * 1-5"
   workflow_dispatch:
     inputs:
       full_sync:
@@ -24,7 +24,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
+
+      - name: Sync with remote before changes
+        run: |
+          git config user.name "lof-arbiter-bot"
+          git config user.email "bot@lof-arbiter.dev"
+          git fetch origin main
+          git rebase origin/main
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -46,15 +53,6 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           python -m scripts.jisilu
-
-      - name: Sync with main before report
-        run: |
-          cd ${{ github.workspace }}
-          git config user.name "lof-arbiter-bot"
-          git config user.email "bot@lof-arbiter.dev"
-          git fetch origin main
-          # 仅 data/ 有改动时 rebase，避免与远端 docs/index.html 冲突
-          git pull --rebase origin main
 
       - name: Generate report
         id: report
@@ -133,19 +131,18 @@ jobs:
               }
             }
 
-      - name: Commit and push data
+      - name: Commit and push changes
         run: |
           cd ${{ github.workspace }}
           git config user.name "lof-arbiter-bot"
           git config user.email "bot@lof-arbiter.dev"
 
-          git add data/lof_arbiter.db data/*.csv -f 2>/dev/null || true
-          git add data/ docs/index.html -f 2>/dev/null || true
+          git add data/ docs/index.html
 
           if git diff --cached --quiet; then
-            echo "No data changes, skipping commit"
+            echo "No changes, skipping commit"
             exit 0
           fi
 
-          git commit -m "data: daily ETL $(date +'%Y-%m-%d %H:%M')"
+          git commit -m "data: daily ETL $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M')"
           git push origin HEAD:main
