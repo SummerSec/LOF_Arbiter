@@ -2,8 +2,10 @@ name: Daily LOF ETL
 
 on:
   schedule:
-    # 北京时间 工作日 13:30 = UTC 05:30
-    - cron: "30 5 * * 1-5"
+    # 北京时间 工作日 10:00–15:30 每半小时（UTC 02:00–07:30）
+    - cron: "0,30 2-7 * * 1-5"
+    # 北京时间 工作日 16:00（UTC 08:00）
+    - cron: "0 8 * * 1-5"
   workflow_dispatch:
     inputs:
       full_sync:
@@ -56,8 +58,21 @@ jobs:
           cd ${{ github.workspace }}
           python -m scripts.etl
 
+      - name: Decide Jisilu sync
+        id: jisilu
+        run: |
+          BJ_HOUR=$(TZ=Asia/Shanghai date +%H)
+          BJ_MIN=$(TZ=Asia/Shanghai date +%M)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.full_sync }}" = "true" ]; then
+            echo "sync=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "schedule" ] && [ "$BJ_HOUR" = "10" ] && [ "$BJ_MIN" = "00" ]; then
+            echo "sync=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sync=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Sync Jisilu
-        if: ${{ github.event_name == 'schedule' || github.event.inputs.full_sync == 'true' }}
+        if: steps.jisilu.outputs.sync == 'true'
         run: |
           cd ${{ github.workspace }}
           python -m scripts.jisilu
@@ -84,6 +99,7 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('/tmp/report.md', 'utf8');
+            const body = `${report}\n\n---\n\n/cc @SummerSec @Barry04`;
 
             const now = new Date();
             const bjTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
@@ -111,7 +127,7 @@ jobs:
                 repo,
                 issue_number: todayIssue.number,
                 title,
-                body: report,
+                body: body,
                 state: 'open',
               });
               console.log(`Updated issue #${todayIssue.number} for ${dateStr}`);
@@ -120,7 +136,7 @@ jobs:
                 owner,
                 repo,
                 title,
-                body: report,
+                body: body,
                 labels: ['daily-report'],
               });
               console.log(`Created issue #${created.data.number} for ${dateStr}`);
