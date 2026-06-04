@@ -22,7 +22,7 @@ from scripts.query import (
     get_discount_top,
     get_limited_premium_top,
     get_fund_by_code,
-    format_purchase_limit,
+    format_onsite_subscribe_limit,
     DEFAULT_DB_PATH,
 )
 from scripts.jisilu import get_jisilu_latest, get_jisilu_data
@@ -182,7 +182,7 @@ with col1:
                 st.metric("Price", f"{price:.4f}")
                 st.metric("NAV", f"{nav:.4f}")
                 if data_source == "Local (akshare + estimator)":
-                    st.metric("Min Purchase", format_purchase_limit(latest.get("purchase_limit")))
+                    st.metric("On-Exchange Limit", format_onsite_subscribe_limit(latest.get("daily_limit")))
 
 # ---- Column 2: Premium Ranking ----
 with col2:
@@ -202,11 +202,11 @@ with col2:
             rank_df = rank_df.sort_values(premium_col, ascending=False)
             display_cols = [code_col, premium_col]
             display_names = ["Code", "Premium (%)"]
-            if data_source == "Local (akshare + estimator)" and "purchase_limit" in rank_df.columns:
+            if data_source == "Local (akshare + estimator)" and "daily_limit" in rank_df.columns:
                 rank_df = rank_df.copy()
-                rank_df["purchase_limit_display"] = rank_df["purchase_limit"].apply(format_purchase_limit)
-                display_cols.append("purchase_limit_display")
-                display_names.append("Min Purchase")
+                rank_df["onsite_limit_display"] = rank_df["daily_limit"].apply(format_onsite_subscribe_limit)
+                display_cols.append("onsite_limit_display")
+                display_names.append("On-Exchange Limit")
             display = rank_df[display_cols].copy()
             display.columns = display_names
             display = display.reset_index(drop=True)

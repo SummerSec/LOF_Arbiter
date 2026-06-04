@@ -70,6 +70,9 @@ def get_lof_data(
 
         df['status_class'] = df['purchase_status'].apply(classify_status)
 
+        if 'daily_limit' in df.columns:
+            df['onsite_subscribe_limit'] = df['daily_limit'].apply(resolve_onsite_subscribe_limit)
+
         return df
     finally:
         conn.close()
@@ -288,13 +291,28 @@ def _format_premium(premium: float) -> str:
     return f"{premium:.2f}%"
 
 
-def format_purchase_limit(value) -> str:
-    if value is None or pd.isna(value):
-        return "未知"
+# 东方财富 daily_limit 中 1e11 量级表示「不限额」
+_UNLIMITED_DAILY_LIMIT = 1e10
+
+
+def resolve_onsite_subscribe_limit(daily_limit) -> Optional[float]:
+    """从日累计限定金额解析场内申购限额（非场外购买起点）。"""
+    if daily_limit is None or pd.isna(daily_limit):
+        return None
     try:
-        amount = float(value)
+        amount = float(daily_limit)
     except (TypeError, ValueError):
-        return str(value) or "未知"
+        return None
+    if amount >= _UNLIMITED_DAILY_LIMIT:
+        return None
+    return amount
+
+
+def format_onsite_subscribe_limit(daily_limit, empty_label: str = "不限") -> str:
+    """格式化场内申购日限额（元）。"""
+    amount = resolve_onsite_subscribe_limit(daily_limit)
+    if amount is None:
+        return empty_label
     if amount >= 10000:
         return f"{amount / 10000:.2f}万"
     if amount.is_integer():
@@ -330,7 +348,7 @@ def format_fund_row(row: Dict, include_status: bool = True) -> str:
     turnover = row.get('turnover') or 0
     turnover_wan = turnover / 10000 if turnover else 0
     status = row.get('purchase_status', '未知')
-    purchase_limit = format_purchase_limit(row.get('purchase_limit'))
+    subscribe_limit = format_onsite_subscribe_limit(row.get('daily_limit'))
     est_nav = row.get('estimated_nav')
     est_nav_tomorrow = row.get('estimated_nav_tomorrow')
     bm_change = row.get('benchmark_change_pct')
@@ -392,7 +410,7 @@ def format_fund_row(row: Dict, include_status: bool = True) -> str:
     elif method == 'LEGACY':
         lines.append("  [Legacy] 无跟踪配置，溢价基于最新官方净值")
 
-    lines.append(f"  成交额: {turnover_str} | 最低申购: {purchase_limit} | 状态: {status}")
+    lines.append(f"  成交额: {turnover_str} | 场内申购限额: {subscribe_limit} | 状态: {status}")
 
     return "\n".join(lines)
 
