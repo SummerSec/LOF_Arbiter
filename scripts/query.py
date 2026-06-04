@@ -288,6 +288,20 @@ def _format_premium(premium: float) -> str:
     return f"{premium:.2f}%"
 
 
+def format_purchase_limit(value) -> str:
+    if value is None or pd.isna(value):
+        return "未知"
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        return str(value) or "未知"
+    if amount >= 10000:
+        return f"{amount / 10000:.2f}万"
+    if amount.is_integer():
+        return f"{amount:.0f}元"
+    return f"{amount:.2f}元"
+
+
 def _confidence_label(method: str, confidence: str) -> str:
     labels = {
         "TRACKING_HK": "港股同步·高置信",
@@ -316,6 +330,7 @@ def format_fund_row(row: Dict, include_status: bool = True) -> str:
     turnover = row.get('turnover') or 0
     turnover_wan = turnover / 10000 if turnover else 0
     status = row.get('purchase_status', '未知')
+    purchase_limit = format_purchase_limit(row.get('purchase_limit'))
     est_nav = row.get('estimated_nav')
     est_nav_tomorrow = row.get('estimated_nav_tomorrow')
     bm_change = row.get('benchmark_change_pct')
@@ -377,7 +392,7 @@ def format_fund_row(row: Dict, include_status: bool = True) -> str:
     elif method == 'LEGACY':
         lines.append("  [Legacy] 无跟踪配置，溢价基于最新官方净值")
 
-    lines.append(f"  成交额: {turnover_str} | 状态: {status}")
+    lines.append(f"  成交额: {turnover_str} | 最低申购: {purchase_limit} | 状态: {status}")
 
     return "\n".join(lines)
 

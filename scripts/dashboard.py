@@ -22,6 +22,7 @@ from scripts.query import (
     get_discount_top,
     get_limited_premium_top,
     get_fund_by_code,
+    format_purchase_limit,
     DEFAULT_DB_PATH,
 )
 from scripts.jisilu import get_jisilu_latest, get_jisilu_data
@@ -180,6 +181,8 @@ with col1:
                 st.metric("Premium Rate", f"{premium:.2f}%")
                 st.metric("Price", f"{price:.4f}")
                 st.metric("NAV", f"{nav:.4f}")
+                if data_source == "Local (akshare + estimator)":
+                    st.metric("Min Purchase", format_purchase_limit(latest.get("purchase_limit")))
 
 # ---- Column 2: Premium Ranking ----
 with col2:
@@ -197,8 +200,15 @@ with col2:
 
         if not rank_df.empty and premium_col in rank_df.columns:
             rank_df = rank_df.sort_values(premium_col, ascending=False)
-            display = rank_df[[code_col, premium_col]].copy()
-            display.columns = ["Code", "Premium (%)"]
+            display_cols = [code_col, premium_col]
+            display_names = ["Code", "Premium (%)"]
+            if data_source == "Local (akshare + estimator)" and "purchase_limit" in rank_df.columns:
+                rank_df = rank_df.copy()
+                rank_df["purchase_limit_display"] = rank_df["purchase_limit"].apply(format_purchase_limit)
+                display_cols.append("purchase_limit_display")
+                display_names.append("Min Purchase")
+            display = rank_df[display_cols].copy()
+            display.columns = display_names
             display = display.reset_index(drop=True)
             st.dataframe(
                 display.style.background_gradient(subset=["Premium (%)"], cmap="RdYlGn"),

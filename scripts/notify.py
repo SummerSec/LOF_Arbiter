@@ -132,6 +132,20 @@ def _format_turnover(turnover) -> str:
     return f"{turnover_wan * 10000:.0f}元"
 
 
+def _format_purchase_limit(value) -> str:
+    if value is None or pd.isna(value):
+        return "—"
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        return str(value) or "—"
+    if amount >= 10000:
+        return f"{amount / 10000:.2f}万"
+    if amount.is_integer():
+        return f"{amount:.0f}元"
+    return f"{amount:.2f}元"
+
+
 def _format_premium_md(premium) -> str:
     if premium is None or pd.isna(premium):
         return "—"
@@ -414,7 +428,7 @@ body {
 .table-scroll { overflow-x: auto; }
 table.data {
   width: 100%;
-  min-width: 920px;
+  min-width: 980px;
   border-collapse: collapse;
   font-size: 13px;
 }
@@ -566,6 +580,7 @@ def _fund_table_html(df: pd.DataFrame, show_status: bool = False) -> str:
       <th class="col-center col-focus">溢价</th>
       <th class="col-center">预估净值</th>
       <th class="col-center">成交额</th>
+      <th class="col-center">申购起点</th>
       {status_th}
       <th class="col-center">置信度</th>
       <th class="col-center">外链</th>
@@ -595,6 +610,7 @@ def _fund_table_html(df: pd.DataFrame, show_status: bool = False) -> str:
             f"{_html_premium_cell(row.get('premium_rate'))}"
             f'<td class="num">{est_str}</td>'
             f'<td class="num">{_format_turnover(row.get("turnover"))}</td>'
+            f'<td class="num">{_format_purchase_limit(row.get("purchase_limit"))}</td>'
             f"{status_td}"
             f'<td class="num">{_html_confidence_pill(row.get("estimation_method", ""), row.get("premium_confidence", ""))}</td>'
             f'<td class="links">{_html_link_pills(code_raw)}</td>'
@@ -673,9 +689,9 @@ def _fund_table(df: pd.DataFrame, show_status: bool = False) -> str:
     if df.empty:
         return "_今日暂无满足条件的品种_\n"
 
-    headers = ["基金", "代码", "当日溢价", "现价", "预估净值", "成交额", "外链", "置信度"]
+    headers = ["基金", "代码", "当日溢价", "现价", "预估净值", "成交额", "申购起点", "外链", "置信度"]
     if show_status:
-        headers.insert(6, "申购状态")
+        headers.insert(7, "申购状态")
 
     rows = ["| " + " | ".join(headers) + " |", "| " + " | ".join(["---"] * len(headers)) + " |"]
 
@@ -694,6 +710,7 @@ def _fund_table(df: pd.DataFrame, show_status: bool = False) -> str:
             f"{row.get('price', 0):.3f}" if row.get("price") else "—",
             est_str,
             _format_turnover(row.get("turnover")),
+            _format_purchase_limit(row.get("purchase_limit")),
         ]
         if show_status:
             cells.append(_status_badge(row.get("purchase_status", "")))
