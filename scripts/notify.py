@@ -36,6 +36,7 @@ from scripts.jisilu import (
     clean_fund_code,
     format_fund_external_links,
 )
+from scripts.query import format_onsite_subscribe_limit, format_onsite_subscribe_min
 
 REPORT_TOP_N = 10
 
@@ -130,6 +131,14 @@ def _format_turnover(turnover) -> str:
     if turnover_wan >= 1:
         return f"{turnover_wan:.2f}万"
     return f"{turnover_wan * 10000:.0f}元"
+
+
+def _format_onsite_subscribe_limit(daily_limit) -> str:
+    return format_onsite_subscribe_limit(daily_limit, empty_label="—")
+
+
+def _format_onsite_subscribe_min(fund_code) -> str:
+    return format_onsite_subscribe_min(fund_code)
 
 
 def _format_premium_md(premium) -> str:
@@ -414,7 +423,7 @@ body {
 .table-scroll { overflow-x: auto; }
 table.data {
   width: 100%;
-  min-width: 920px;
+  min-width: 1060px;
   border-collapse: collapse;
   font-size: 13px;
 }
@@ -566,6 +575,8 @@ def _fund_table_html(df: pd.DataFrame, show_status: bool = False) -> str:
       <th class="col-center col-focus">溢价</th>
       <th class="col-center">预估净值</th>
       <th class="col-center">成交额</th>
+      <th class="col-center">场内最低</th>
+      <th class="col-center">场内最高</th>
       {status_th}
       <th class="col-center">置信度</th>
       <th class="col-center">外链</th>
@@ -595,6 +606,8 @@ def _fund_table_html(df: pd.DataFrame, show_status: bool = False) -> str:
             f"{_html_premium_cell(row.get('premium_rate'))}"
             f'<td class="num">{est_str}</td>'
             f'<td class="num">{_format_turnover(row.get("turnover"))}</td>'
+            f'<td class="num">{_format_onsite_subscribe_min(code_raw)}</td>'
+            f'<td class="num">{_format_onsite_subscribe_limit(row.get("daily_limit"))}</td>'
             f"{status_td}"
             f'<td class="num">{_html_confidence_pill(row.get("estimation_method", ""), row.get("premium_confidence", ""))}</td>'
             f'<td class="links">{_html_link_pills(code_raw)}</td>'
@@ -673,9 +686,9 @@ def _fund_table(df: pd.DataFrame, show_status: bool = False) -> str:
     if df.empty:
         return "_今日暂无满足条件的品种_\n"
 
-    headers = ["基金", "代码", "当日溢价", "现价", "预估净值", "成交额", "外链", "置信度"]
+    headers = ["基金", "代码", "当日溢价", "现价", "预估净值", "成交额", "场内最低", "场内最高", "外链", "置信度"]
     if show_status:
-        headers.insert(6, "申购状态")
+        headers.insert(8, "申购状态")
 
     rows = ["| " + " | ".join(headers) + " |", "| " + " | ".join(["---"] * len(headers)) + " |"]
 
@@ -694,6 +707,8 @@ def _fund_table(df: pd.DataFrame, show_status: bool = False) -> str:
             f"{row.get('price', 0):.3f}" if row.get("price") else "—",
             est_str,
             _format_turnover(row.get("turnover")),
+            _format_onsite_subscribe_min(row.get("fund_code_full") or row.get("fund_code")),
+            _format_onsite_subscribe_limit(row.get("daily_limit")),
         ]
         if show_status:
             cells.append(_status_badge(row.get("purchase_status", "")))
