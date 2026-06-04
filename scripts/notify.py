@@ -15,6 +15,7 @@ LOF Arbiter - 通知模块
 import os
 import smtplib
 import html as html_module
+import json
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -39,6 +40,7 @@ from scripts.jisilu import (
 from scripts.query import format_onsite_subscribe_limit, format_onsite_subscribe_min
 
 REPORT_TOP_N = 10
+REPORT_HTML_TOP_OPTIONS = [10, 20, 30, 50]
 
 
 def get_env(key: str, default: str = "") -> str:
@@ -165,6 +167,7 @@ def _status_badge(status: str) -> str:
 def _load_report_context(
     db_path: str = "",
     generated_at: Optional[str] = None,
+    list_limit: int = REPORT_TOP_N,
 ) -> Dict[str, Any]:
     import sys
 
@@ -200,10 +203,10 @@ def _load_report_context(
         "db_path": db,
         "empty": False,
         "df_all": df_all,
-        "df_limited": get_limited_premium_top(n=REPORT_TOP_N, min_premium=0.3),
-        "df_premium": get_premium_top(n=REPORT_TOP_N, min_premium=0.5),
-        "df_suspended": get_suspended_premium_top(n=REPORT_TOP_N, min_premium=0.5),
-        "df_discount": get_discount_top(n=REPORT_TOP_N, min_discount=0.5),
+        "df_limited": get_limited_premium_top(n=list_limit, min_premium=0.3),
+        "df_premium": get_premium_top(n=list_limit, min_premium=0.5),
+        "df_suspended": get_suspended_premium_top(n=list_limit, min_premium=0.5),
+        "df_discount": get_discount_top(n=list_limit, min_discount=0.5),
     }
 
 
@@ -555,6 +558,40 @@ td.links { white-space: nowrap; }
   color: var(--muted-light);
   font-size: 14px;
 }
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0 24px;
+  padding: 12px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.top-bar-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.top-btn {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.top-btn:hover,
+.top-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
 @media (max-width: 640px) {
   .hero h1 { font-size: 1.35rem; }
   .stat-card .value { font-size: 18px; }
@@ -650,6 +687,211 @@ def _estimation_summary_html(df: pd.DataFrame) -> str:
         f'<div class="value">{count}</div></div>'
         for label, count in cards
     ) + "</div>"
+
+
+def _serialize_fund_rows(df: pd.DataFrame, show_status: bool = False) -> List[Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
+    for _, row in df.iterrows():
+        est_nav = row.get("estimated_nav") or row.get("nav") or row.get("prev_nav")
+        est_str = f"{est_nav:.4f}" if est_nav is not None and not pd.isna(est_nav) else "—"
+        code_raw = row.get("fund_code_full") or row.get("fund_code") or ""
+        price = row.get("price")
+        premium = row.get("premium_rate")
+        item: Dict[str, Any] = {
+            "code": clean_fund_code(code_raw),
+            "js_url": jisilu_detail_url(code_raw),
+            "name": str(row.get("fund_name", "")),
+            "price_str": f"¥{price:.4f}" if price else "—",
+            "premium_rate": None if premium is None or pd.isna(premium) else float(premium),
+            "est_str": est_str,
+            "turnover_str": _format_turnover(row.get("turnover")),
+            "onsite_min": _format_onsite_subscribe_min(code_raw),
+            "onsite_max": _format_onsite_subscribe_limit(row.get("daily_limit")),
+            "confidence_html": _html_confidence_pill(
+                row.get("estimation_method", ""), row.get("premium_confidence", "")
+            ),
+            "links_html": _html_link_pills(code_raw),
+        }
+        if show_status:
+            item["status_html"] = _html_status_pill(row.get("purchase_status", ""))
+        rows.append(item)
+    return rows
+
+
+def _html_table_header(show_status: bool = False) -> str:
+    status_th = '<th class="col-center">申购</th>' if show_status else ""
+    return f"""<thead><tr>
+      <th class="col-center">代码</th>
+      <th>名称</th>
+      <th class="col-center">现价</th>
+      <th class="col-center col-focus">溢价</th>
+      <th class="col-center">预估净值</th>
+      <th class="col-center">成交额</th>
+      <th class="col-center">场内最低</th>
+      <th class="col-center">场内最高</th>
+      {status_th}
+      <th class="col-center">置信度</th>
+      <th class="col-center">外链</th>
+    </tr></thead>"""
+
+
+def _html_top_limit_bar() -> str:
+    buttons = [
+        f'<button type="button" class="top-btn{" active" if n == REPORT_TOP_N else ""}" data-top="{n}">TOP{n}</button>'
+        for n in REPORT_HTML_TOP_OPTIONS
+    ]
+    buttons.append('<button type="button" class="top-btn" data-top="0">全部</button>')
+    return (
+        '<div class="top-bar" id="top-limit-bar">'
+        '<span class="top-bar-label">每榜显示</span>'
+        + "".join(buttons)
+        + '<span class="top-bar-label" style="margin-left:auto">Issue 固定 TOP10</span>'
+        "</div>"
+    )
+
+
+def _html_dynamic_section(section_id: str, title: str, hint: str, show_status: bool) -> str:
+    return (
+        f'<section class="section" id="section-{section_id}">'
+        f'<div class="section-head"><h2>{_html_escape(title)}</h2>'
+        f'<span class="section-count" id="count-{section_id}">—</span></div>'
+        f'<p class="section-hint">{_html_escape(hint)}</p>'
+        '<div class="card"><div class="table-scroll">'
+        f'<table class="data">{_html_table_header(show_status)}'
+        f'<tbody id="tbody-{section_id}"></tbody></table>'
+        "</div></div></section>"
+    )
+
+
+def _build_html_sections_payload(ctx: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "limited": {
+            "show_status": True,
+            "rows": _serialize_fund_rows(ctx["df_limited"], show_status=True),
+        },
+        "premium": {
+            "show_status": False,
+            "rows": _serialize_fund_rows(ctx["df_premium"]),
+        },
+        "discount": {
+            "show_status": False,
+            "rows": _serialize_fund_rows(ctx["df_discount"]),
+        },
+        "suspended": {
+            "show_status": True,
+            "rows": _serialize_fund_rows(ctx["df_suspended"], show_status=True),
+        },
+    }
+
+
+_HTML_INTERACTIVE_SCRIPT = """
+(function () {
+  const DATA = __REPORT_DATA__;
+  const DEFAULT_TOP = __DEFAULT_TOP__;
+  const STORAGE_KEY = "lof-report-top-limit";
+
+  function escHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function premiumCell(rate) {
+    if (rate === null || rate === undefined || Number.isNaN(rate)) {
+      return '<td class="num muted premium-focus">—</td>';
+    }
+    let cls = "num premium-focus ";
+    if (rate > 0) cls += "premium-up";
+    else if (rate < 0) cls += "premium-down";
+    else cls += "muted";
+    let text = (rate > 0 ? "+" : "") + rate.toFixed(2) + "%";
+    if (Math.abs(rate) > 1) text = "<strong>" + text + "</strong>";
+    return '<td class="' + cls + '">' + text + "</td>";
+  }
+
+  function renderRow(row, showStatus) {
+    const name = escHtml(row.name);
+    const statusTd = showStatus ? '<td class="num">' + (row.status_html || "") + "</td>" : "";
+    return (
+      "<tr>" +
+      '<td class="code"><a href="' + row.js_url + '" target="_blank" rel="noopener">' + escHtml(row.code) + "</a></td>" +
+      '<td class="name"><a href="' + row.js_url + '" target="_blank" rel="noopener" title="' + name + '">' + name + "</a></td>" +
+      '<td class="num">' + escHtml(row.price_str) + "</td>" +
+      premiumCell(row.premium_rate) +
+      '<td class="num">' + escHtml(row.est_str) + "</td>" +
+      '<td class="num">' + escHtml(row.turnover_str) + "</td>" +
+      '<td class="num">' + escHtml(row.onsite_min) + "</td>" +
+      '<td class="num">' + escHtml(row.onsite_max) + "</td>" +
+      statusTd +
+      '<td class="num">' + (row.confidence_html || "") + "</td>" +
+      '<td class="links">' + (row.links_html || "") + "</td>" +
+      "</tr>"
+    );
+  }
+
+  function renderSection(sectionId, limit) {
+    const section = DATA[sectionId] || { rows: [], show_status: false };
+    const rows = section.rows || [];
+    const total = rows.length;
+    const showStatus = !!section.show_status;
+    const tbody = document.getElementById("tbody-" + sectionId);
+    const countEl = document.getElementById("count-" + sectionId);
+    if (!tbody || !countEl) return;
+
+    if (!total) {
+      tbody.innerHTML = '<tr><td colspan="12" class="empty">今日暂无满足条件的品种</td></tr>';
+      countEl.textContent = "0 只";
+      return;
+    }
+
+    const shown = limit <= 0 ? total : Math.min(limit, total);
+    tbody.innerHTML = rows.slice(0, shown).map((row) => renderRow(row, showStatus)).join("");
+    countEl.textContent = shown === total ? total + " 只" : shown + " / " + total + " 只";
+  }
+
+  function renderAll(limit) {
+    Object.keys(DATA).forEach((sectionId) => renderSection(sectionId, limit));
+    document.querySelectorAll("#top-limit-bar .top-btn").forEach((btn) => {
+      const active = String(btn.dataset.top) === String(limit);
+      btn.classList.toggle("active", active);
+    });
+    try {
+      localStorage.setItem(STORAGE_KEY, String(limit));
+    } catch (err) {}
+  }
+
+  function initTopBar() {
+    const bar = document.getElementById("top-limit-bar");
+    if (!bar) return;
+    bar.addEventListener("click", (event) => {
+      const btn = event.target.closest(".top-btn");
+      if (!btn) return;
+      renderAll(Number(btn.dataset.top || DEFAULT_TOP));
+    });
+  }
+
+  let initial = DEFAULT_TOP;
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved !== null && saved !== "") initial = Number(saved);
+  } catch (err) {}
+  if (![10, 20, 30, 50, 0].includes(initial)) initial = DEFAULT_TOP;
+
+  initTopBar();
+  renderAll(initial);
+})();
+"""
+
+
+def _html_interactive_script(sections_payload: Dict[str, Any]) -> str:
+    data_json = json.dumps(sections_payload, ensure_ascii=False)
+    script = (
+        _HTML_INTERACTIVE_SCRIPT.replace("__REPORT_DATA__", data_json)
+        .replace("__DEFAULT_TOP__", str(REPORT_TOP_N))
+    )
+    return f"<script>{script}</script>"
 
 
 def _html_section(title: str, hint: str, table_html: str, count: int = 0) -> str:
@@ -831,7 +1073,7 @@ def generate_report_html(
     generated_at: Optional[str] = None,
 ) -> str:
     """生成固定 HTML 日报页面（docs/index.html），风格参考 TradeSmart LOF 溢价表。"""
-    ctx = _load_report_context(db_path=db_path, generated_at=generated_at)
+    ctx = _load_report_context(db_path=db_path, generated_at=generated_at, list_limit=0)
     now = ctx["now"]
     sources = (
         f'<a href="{JISILU_LOF_LIST_URL}" target="_blank" rel="noopener">集思录</a> · '
@@ -839,6 +1081,7 @@ def generate_report_html(
         f'<a href="{TRADESMART_LOF_URL}" target="_blank" rel="noopener">TradeSmart</a> · '
         f'<a href="https://github.com/SummerSec/LOF_Arbiter" target="_blank" rel="noopener">GitHub</a>'
     )
+    interactive_script = ""
 
     if ctx["empty"]:
         inner = (
@@ -849,6 +1092,8 @@ def generate_report_html(
             '<div class="card"><p class="empty">今日暂无 LOF 行情数据，请检查 ETL 是否正常运行。</p></div>'
         )
     else:
+        sections_payload = _build_html_sections_payload(ctx)
+        interactive_script = _html_interactive_script(sections_payload)
         fund_count = len(ctx["df_all"])
         inner = (
             '<header class="hero">'
@@ -860,29 +1105,30 @@ def generate_report_html(
             f'<p class="sources">生成时间：{now}（北京时间） · 数据来源：LOF Arbiter ETL · 参考：{sources}</p>'
             f"{_estimation_summary_html(ctx['df_all'])}"
             "</header>"
-            + _html_section(
-                "二、限购高溢价 TOP10",
+            + _html_top_limit_bar()
+            + _html_dynamic_section(
+                "limited",
+                "二、限购高溢价",
                 "限购 + 高溢价 = 溢价更稳定，优先关注",
-                _fund_table_html(ctx["df_limited"], show_status=True),
-                len(ctx["df_limited"]),
+                show_status=True,
             )
-            + _html_section(
-                "三、高溢价 TOP10（卖出赎回套利）",
+            + _html_dynamic_section(
+                "premium",
+                "三、高溢价（卖出赎回套利）",
                 "场内卖出 + 场外赎回，赚取溢价差",
-                _fund_table_html(ctx["df_premium"]),
-                len(ctx["df_premium"]),
+                show_status=False,
             )
-            + _html_section(
-                "四、高折价 TOP10（买入套利）",
+            + _html_dynamic_section(
+                "discount",
+                "四、高折价（买入套利）",
                 "场内买入 + 场外申购，赚取折价差",
-                _fund_table_html(ctx["df_discount"]),
-                len(ctx["df_discount"]),
+                show_status=False,
             )
-            + _html_section(
-                "五、暂停申购·高溢价 TOP10",
+            + _html_dynamic_section(
+                "suspended",
+                "五、暂停申购·高溢价",
                 "场外申购已关闭，无法新开申购套利；若已持仓，可关注场内高溢价卖出机会",
-                _fund_table_html(ctx["df_suspended"], show_status=True),
-                len(ctx["df_suspended"]),
+                show_status=True,
             )
             + _html_risk_section()
             + (
@@ -904,6 +1150,7 @@ def generate_report_html(
   <div class="page">
 {inner}
   </div>
+{interactive_script}
 </body>
 </html>
 """

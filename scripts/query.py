@@ -99,7 +99,9 @@ def get_premium_top(
 
     df = df.sort_values(['premium_rate', 'status_class'], ascending=[False, True])
 
-    return df.head(n)
+    if n > 0:
+        df = df.head(n)
+    return df
 
 
 def get_discount_top(
@@ -117,7 +119,9 @@ def get_discount_top(
 
     df = df.sort_values('premium_rate', ascending=True)
 
-    return df.head(n)
+    if n > 0:
+        df = df.head(n)
+    return df
 
 
 def get_limited_premium_top(
@@ -135,7 +139,9 @@ def get_limited_premium_top(
 
     df = df.sort_values('premium_rate', ascending=False)
 
-    return df.head(n)
+    if n > 0:
+        df = df.head(n)
+    return df
 
 
 def get_suspended_premium_top(
@@ -153,7 +159,9 @@ def get_suspended_premium_top(
 
     df = df.sort_values("premium_rate", ascending=False)
 
-    return df.head(n)
+    if n > 0:
+        df = df.head(n)
+    return df
 
 
 def get_fund_by_code(
