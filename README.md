@@ -148,6 +148,42 @@ Skill 回复：
 - **ETL 层**：ODS → DWD（见 DataHub 项目）
 - **数据表**：`dwd_fund_lof`
 
+## 自动化 CI/CD
+
+通过 GitHub Actions 定时执行 ETL 数据更新与日报发布：
+
+| 功能 | 说明 |
+|------|------|
+| ETL 数据更新 | 每工作日 10:00–15:30 每半小时，16:00 收尾 |
+| Jisilu 同步 | 仅当日首次运行（10:00）全量同步集思录溢价数据 |
+| HTML 日报 | 更新 `docs/index.html`，部署到 GitHub Pages |
+| Issue 日报 | 每日生成/更新一条 `【LOF套利日报】` Issue |
+
+### 调度配置
+
+使用 GitHub Actions 2026年3月新增的 `timezone` 特性，cron 直接以**北京时间**编写，不再手动转换 UTC：
+
+```yaml
+on:
+  schedule:
+    - cron: "0,30 10-15 * * 1-5"
+      timezone: "Asia/Shanghai"
+    - cron: "0 16 * * 1-5"
+      timezone: "Asia/Shanghai"
+```
+
+### 数据流向
+
+```
+akshare (东方财富行情) ──→ ETL (scripts/etl) ──→ data/ 数据文件
+                                                    │
+集思录 (Jisilu) ──→ scripts/jisilu ──→ data/ 溢价数据
+                                                    │
+                                                    ▼
+                                       docs/index.html ──→ GitHub Pages
+                                       /tmp/report.md ──→ GitHub Issue
+```
+
 ---
 
 ## License

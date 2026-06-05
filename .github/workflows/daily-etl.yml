@@ -2,10 +2,12 @@ name: Daily LOF ETL
 
 on:
   schedule:
-    # 北京时间 工作日 10:00–15:30 每半小时（UTC 02:00–07:30）
-    - cron: "0,30 2-7 * * 1-5"
-    # 北京时间 工作日 16:00（UTC 08:00）
-    - cron: "0 8 * * 1-5"
+    # 北京时间 工作日 10:00–15:30 每半小时
+    - cron: "0,30 10-15 * * 1-5"
+      timezone: "Asia/Shanghai"
+    # 北京时间 工作日 16:00
+    - cron: "0 16 * * 1-5"
+      timezone: "Asia/Shanghai"
   workflow_dispatch:
     inputs:
       full_sync:
@@ -61,11 +63,9 @@ jobs:
       - name: Decide Jisilu sync
         id: jisilu
         run: |
-          BJ_HOUR=$(TZ=Asia/Shanghai date +%H)
-          BJ_MIN=$(TZ=Asia/Shanghai date +%M)
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.full_sync }}" = "true" ]; then
             echo "sync=true" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "schedule" ] && [ "$BJ_HOUR" = "10" ] && [ "$BJ_MIN" = "00" ]; then
+          elif [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "0 10 * * 1-5" ]; then
             echo "sync=true" >> "$GITHUB_OUTPUT"
           else
             echo "sync=false" >> "$GITHUB_OUTPUT"
