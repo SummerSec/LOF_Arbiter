@@ -2,11 +2,18 @@ name: Daily LOF ETL
 
 on:
   schedule:
-    # 北京时间 工作日 10:00–15:30 每半小时
-    - cron: "0,30 10-15 * * 1-5"
+    # 北京时间 工作日 10:07 —— 当日首次，触发全量同步（含 Jisilu）
+    # 错峰避开 UTC 整点/整半的全球调度拥堵高峰，降低被延迟/丢弃概率
+    - cron: "7 10 * * 1-5"
       timezone: "Asia/Shanghai"
-    # 北京时间 工作日 16:00
-    - cron: "0 16 * * 1-5"
+    # 北京时间 工作日 10:37、11:37…15:37
+    - cron: "37 10-15 * * 1-5"
+      timezone: "Asia/Shanghai"
+    # 北京时间 工作日 11:07、12:07…15:07
+    - cron: "7 11-15 * * 1-5"
+      timezone: "Asia/Shanghai"
+    # 北京时间 工作日 16:03
+    - cron: "3 16 * * 1-5"
       timezone: "Asia/Shanghai"
   workflow_dispatch:
     inputs:
@@ -65,7 +72,7 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.full_sync }}" = "true" ]; then
             echo "sync=true" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "0 10 * * 1-5" ]; then
+          elif [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "7 10 * * 1-5" ]; then
             echo "sync=true" >> "$GITHUB_OUTPUT"
           else
             echo "sync=false" >> "$GITHUB_OUTPUT"
