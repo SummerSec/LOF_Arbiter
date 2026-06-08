@@ -3,16 +3,16 @@ name: Daily LOF ETL
 on:
   schedule:
     # 北京时间 工作日 10:00 —— 当日首次，单独成条以触发全量同步（含 Jisilu）
-    - cron: "0 10 * * 1-5"
-      timezone: "Asia/Shanghai"
+    - cron: '0 10 * * 1-5'
+      timezone: Asia/Shanghai
     # 北京时间 工作日 10:30、11:00…15:30 每半小时
-    - cron: "30 10-15 * * 1-5"
-      timezone: "Asia/Shanghai"
-    - cron: "0 11-15 * * 1-5"
-      timezone: "Asia/Shanghai"
+    - cron: '30 10-15 * * 1-5'
+      timezone: Asia/Shanghai
+    - cron: '0 11-15 * * 1-5'
+      timezone: Asia/Shanghai
     # 北京时间 工作日 16:00
-    - cron: "0 16 * * 1-5"
-      timezone: "Asia/Shanghai"
+    - cron: '0 16 * * 1-5'
+      timezone: Asia/Shanghai
   workflow_dispatch:
     inputs:
       full_sync:
